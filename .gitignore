@@ -1,0 +1,19 @@
+# Node modules
+node_modules/
+
+# Distribution and build folders
+dist/
+build/
+
+# Turbo directory
+.turbo/
+
+# macOS system files
+.DS_Store
+
+# Log files
+*.log
+
+# Your specific files
+# Add here
+
