@@ -1,0 +1,51 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  apps/iN-worker-A-api-gateway-20250402: {}
+
+  apps/iN-worker-B-config-api-20250402: {}
+
+  apps/iN-worker-C-config-20250402: {}
+
+  apps/iN-worker-D-download-20250402: {}
+
+  apps/iN-worker-E-metadata-20250402: {}
+
+  apps/iN-worker-F-ai-20250402: {}
+
+  apps/iN-worker-G-user-api-20250402: {}
+
+  apps/iN-worker-H-image-query-api-20250402: {}
+
+  apps/iN-worker-I-image-mutation-api-20250402: {}
+
+  apps/iN-worker-J-image-search-api-20250402: {}
+
+  apps/in-pages: {}
+
+  packages/ai-worker-logic: {}
+
+  packages/config-worker-logic: {}
+
+  packages/download-worker-logic: {}
+
+  packages/eslint-config: {}
+
+  packages/image-update-worker-logic: {}
+
+  packages/metadata-worker-logic: {}
+
+  packages/notification-worker-logic: {}
+
+  packages/shared: {}
+
+  packages/tag-indexer-worker-logic: {}
+
+  packages/typescript-config: {}
+
+  packages/ui: {}
