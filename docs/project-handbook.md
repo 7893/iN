@@ -106,6 +106,7 @@
 **组件清单**: (参考先前生成的 V4 版本“iN 项目资源组件清单”，包含必需/推荐/可选状态和精炼后的职责描述)
 
 **架构图**:
+
 ```mermaid
 graph TD
     subgraph "User Interaction"
@@ -200,6 +201,9 @@ graph TD
         SharedLibs --> event-types.ts;
         GW -- uses --> SharedLibs; AIW -- uses --> SharedLibs; etc.
     end
+
+```
+
 
 ### 4.2 数据架构
 
