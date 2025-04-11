@@ -1,3 +1,0 @@
-# Event Bus Worker 说明
-
-内容略...
