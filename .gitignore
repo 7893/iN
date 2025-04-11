@@ -16,4 +16,5 @@ build/
 
 # Your specific files
 # Add here
+infra/terraform.tfvars
 
