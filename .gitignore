@@ -17,4 +17,6 @@ build/
 # Your specific files
 # Add here
 infra/terraform.tfvars
+# 忽略 .env.secrets 文件
+/.env.secrets
 
