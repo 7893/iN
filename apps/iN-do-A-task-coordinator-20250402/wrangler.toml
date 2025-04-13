@@ -1,0 +1,13 @@
+# Minimal wrangler.toml for DO Namespace creation test
+name = "in-do-a-task-coordinator-20250402"
+main = "src/index.ts"
+compatibility_date = "2025-04-13" # 使用您希望的日期
+account_id = "${CLOUDFLARE_ACCOUNT_ID}" # 确保环境变量已设置
+
+[[durable_objects.bindings]]
+name = "TASK_COORDINATOR_DO" # 内部绑定名
+class_name = "TaskCoordinatorDO" # 必须与 index.ts 中的类名匹配
+
+[[migrations]]
+tag = "v1" # 初始迁移 tag
+new_classes = ["TaskCoordinatorDO"]
