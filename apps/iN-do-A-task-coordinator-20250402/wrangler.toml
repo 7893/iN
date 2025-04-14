@@ -1,13 +1,24 @@
-# Minimal wrangler.toml for DO Namespace creation test
+# ~/iN/apps/iN-do-A-task-coordinator-20250402/wrangler.toml
+# --- 最小化配置，用于排查 DO Namespace 创建问题 ---
+
+# 部署到 Cloudflare 上的脚本名称 (小写)
 name = "in-do-a-task-coordinator-20250402"
+
+# 主入口文件路径
 main = "src/index.ts"
-compatibility_date = "2025-04-13" # 使用您希望的日期
-account_id = "${CLOUDFLARE_ACCOUNT_ID}" # 确保环境变量已设置
 
+# 兼容性日期
+compatibility_date = "2025-04-13" # 建议使用您开始项目或当前日期
+
+# Cloudflare 账户 ID (从环境变量加载)
+account_id = "${CLOUDFLARE_ACCOUNT_ID}"
+
+# 声明此脚本定义的 Durable Object 类
 [[durable_objects.bindings]]
-name = "TASK_COORDINATOR_DO" # 内部绑定名
-class_name = "TaskCoordinatorDO" # 必须与 index.ts 中的类名匹配
+name = "TASK_COORDINATOR_DO" # Worker 内部用于绑定的名称 (此脚本可能不用，但需声明)
+class_name = "TaskCoordinatorDO" # 必须与 src/index.ts 中导出的类名一致
 
+# 配置 Durable Object 迁移 (这是创建 Namespace 的关键)
 [[migrations]]
-tag = "v1" # 初始迁移 tag
-new_classes = ["TaskCoordinatorDO"]
+tag = "v1" # 初始版本标签，每次结构变更时应更新
+new_classes = ["TaskCoordinatorDO"] # 列出此脚本定义的 DO 类名
