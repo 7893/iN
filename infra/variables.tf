@@ -11,25 +11,26 @@ variable "cloudflare_account_id" {
   description = "Cloudflare Account ID"
 }
 
-# --- GitLab Pages 项目需要的变量 ---
-variable "gitlab_project_id" {
-  type        = string
-  description = "GitLab Project ID (the numeric ID)"
-}
-
-variable "gitlab_project_name" {
-  type        = string
-  description = "GitLab Project Name (should match repo name in URL)"
-  default     = "in"
-}
-
-variable "gitlab_owner" {
-  type        = string
-  description = "GitLab username or group owning the repository for Pages"
-}
-
 variable "pages_production_branch" {
   type        = string
   description = "Production branch name for Pages deployment"
   default     = "main"
+}
+
+variable "gitlab_owner" {
+  type        = string
+  description = "GitLab 用户名或组织名"
+  default     = "79"
+}
+
+variable "gitlab_project_name" {
+  type        = string
+  description = "GitLab 项目名（仓库名）"
+  default     = "in"
+}
+
+variable "gitlab_project_id" {
+  type        = string
+  description = "GitLab 项目的数字 ID（当前未使用，仅预留）"
+  default     = "68866224"
 }

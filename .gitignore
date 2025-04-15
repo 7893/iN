@@ -14,9 +14,17 @@ build/
 # Log files
 *.log
 
-# Your specific files
-# Add here
-infra/terraform.tfvars
 # 忽略 .env.secrets 文件
 /.env.secrets
 
+
+
+# Terraform state and providers cache
+infra/.terraform/
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+# 使用通配符可以合并上面两行:
+# infra/*.tfstate*
+
+# 确保这行存在 (您之前的文件里已经有了)
+infra/terraform.tfvars
