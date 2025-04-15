@@ -1,11 +1,13 @@
-image: node:22
+# ~/iN/.gitlab-ci.yml
 
 stages:
   - install
   - lint
   - test
+  - check-secrets
 
 default:
+  image: node:22
   before_script:
     - corepack enable
     - pnpm install --frozen-lockfile
@@ -14,39 +16,32 @@ cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - .pnpm-store
-    - node_modules
-    - apps/**/node_modules
-    - packages/**/node_modules
+    - node_modules/
 
 install-deps:
   stage: install
   script:
-    - echo "âœ… Dependencies installed via before_script"
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
+    - echo "âœ… ä¾èµ–å®‰è£…å®Œæ¯•"
 
 lint:
   stage: lint
   script:
     - pnpm lint
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
 
 test:
   stage: test
   script:
     - pnpm test
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
 
-check-gitlab-secrets:
-  stage: test
+check-secrets:
+  stage: check-secrets
+  when: manual
   script:
-    - echo "í ½íµµï¸ Checking GitLab secrets..."
-    - echo "í ½í´‘ RUNTIME_HMAC_SECRET length: ${#RUNTIME_HMAC_SECRET}"
-    - echo "í ½í´‘ RUNTIME_R2_S3_ACCESS_KEY_ID starts with: ${RUNTIME_R2_S3_ACCESS_KEY_ID:0:4}"
-    - echo "í ½í´‘ RUNTIME_R2_S3_ENDPOINT_DEFAULT: $RUNTIME_R2_S3_ENDPOINT_DEFAULT"
-    - echo "í ½í´‘ AXIOM_API_TOKEN length: ${#AXIOM_API_TOKEN}"
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
-
+    - echo "ğŸ” æ£€æŸ¥ .env.secrets ä¸­æ˜¯å¦åŒ…å«å ä½ç¬¦..."
+    - |
+      if grep -E '(<placeholder>|xxx|optional_|generate_)' .env.secrets; then
+        echo "âŒ æ£€æµ‹åˆ°æœªæ›¿æ¢çš„å ä½ç¬¦ï¼Œè¯·æ‰‹åŠ¨æ£€æŸ¥ .env.secrets ä¸­çš„å€¼æ˜¯å¦å®Œæ•´ï¼"
+        exit 1
+      else
+        echo "âœ… æœªå‘ç°å ä½ç¬¦ï¼Œsecrets æ£€æŸ¥é€šè¿‡ã€‚"
+      fi
