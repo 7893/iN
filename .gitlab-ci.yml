@@ -1,27 +1,15 @@
-# ~/iN/.gitlab-ci.yml
-
 stages:
-  - install
   - lint
   - test
-  - check-secrets
+  - build
+  - deploy
 
 default:
-  image: node:22
+  image: node:20
   before_script:
     - corepack enable
-    - pnpm install --frozen-lockfile
-
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - .pnpm-store
-    - node_modules/
-
-install-deps:
-  stage: install
-  script:
-    - echo "✅ 依赖安装完毕"
+    - corepack prepare pnpm@latest --activate
+    - pnpm install
 
 lint:
   stage: lint
@@ -33,15 +21,21 @@ test:
   script:
     - pnpm test
 
-check-secrets:
-  stage: check-secrets
-  when: manual
+build:frontend:
+  stage: build
   script:
-    - echo "🔍 检查 .env.secrets 中是否包含占位符..."
-    - |
-      if grep -E '(<placeholder>|xxx|optional_|generate_)' .env.secrets; then
-        echo "❌ 检测到未替换的占位符，请手动检查 .env.secrets 中的值是否完整！"
-        exit 1
-      else
-        echo "✅ 未发现占位符，secrets 检查通过。"
-      fi
+    - pnpm build --filter=in-pages
+  artifacts:
+    paths:
+      - apps/in-pages/dist
+    expire_in: 1h
+
+deploy:pages:
+  stage: deploy
+  script:
+    - npx wrangler pages deploy apps/in-pages/dist --project-name in
+  needs: ["build:frontend"]
+  only:
+    - main
+  environment:
+    name: production
