@@ -93,6 +93,20 @@ resource "cloudflare_workers_script" "frontend_worker" { # Terraform 内部资�
   # 注意：此 Worker 的绑定（例如，如果它需要调用 API Gateway）将在 apps/in/wrangler.toml 中定义
 }
 
+resource "cloudflare_workers_script" "frontend_in_worker" { # 这是 Terraform 内部的资源名称，可以自定义
+  account_id = var.cloudflare_account_id # 从 variables.tf 引用账户 ID
+
+  # script_name: 这是部署到 Cloudflare 上的服务名称，必须是 "in"
+  script_name = "in"
+
+  # content: 初始的占位符脚本内容。
+  # 实际的前端代码和静态文件将由 Wrangler (在 CI/CD 中) 部署时覆盖。
+  content    = "addEventListener('fetch', event => { event.respondWith(new Response('Worker [in] provisioned by Terraform - OK', { status: 200 })) })"
+
+  # 注意：所有运行时绑定 (如果这个 Worker 需要的话，比如调用 API Gateway)
+  # 都将在 apps/in/wrangler.toml 文件中定义，不由 Terraform 管理。
+}
+
 # --- 输出信息 ---
 output "d1_database_id" {
   value = cloudflare_d1_database.main.id
