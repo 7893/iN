@@ -3,7 +3,7 @@ terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 4.0" # 您可以根据需要调整版本约束
+      version = "~> 5.3" # 适配 v5.3.0
     }
   }
 }
