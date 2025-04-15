@@ -91,14 +91,15 @@ resource "cloudflare_workers_script" "frontend_worker" {
 resource "cloudflare_pages_project" "frontend" {
   account_id        = var.cloudflare_account_id
   name              = "in"
-  production_branch = var.pages_production_branch # 通常是 "main"
+  production_branch = var.pages_production_branch
 
-  build_config {
-    root_dir        = "apps/in-pages"
+  build_config = {
     build_command   = "pnpm install && pnpm build"
     destination_dir = "dist"
+    root_dir        = "apps/in-pages"
   }
 }
+
 
 # --- 输出信息 ---
 output "d1_database_id" {
