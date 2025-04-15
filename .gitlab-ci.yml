@@ -1,24 +1,51 @@
-# .gitlab-ci.yml - 基础 CI 流水线配置
-
 stages:
   - lint
   - test
+  - plan
 
+# 1️⃣ Lint 阶段
 lint:
   stage: lint
   image: node:22
-  script:
+  before_script:
     - corepack enable
-    - corepack prepare pnpm@10.8.0 --activate
-    - pnpm install
+    - pnpm install --frozen-lockfile
+  script:
     - pnpm lint
+  rules:
+    - changes:
+        - "**/*.ts"
+        - "**/*.tsx"
+        - eslint.config.mjs
+        - pnpm-lock.yaml
 
+# 2️⃣ Test 阶段
 test:
   stage: test
   image: node:22
-  script:
+  before_script:
     - corepack enable
-    - corepack prepare pnpm@10.8.0 --activate
-    - pnpm install
+    - pnpm install --frozen-lockfile
+  script:
     - pnpm test
+  rules:
+    - changes:
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
+        - "packages/**/*"
+        - "apps/**/*"
+        - pnpm-lock.yaml
 
+# 3️⃣ Terraform Plan 阶段
+terraform_plan:
+  stage: plan
+  image: hashicorp/terraform:1.6
+  before_script:
+    - cd infra
+  script:
+    - terraform init -backend=false
+    - terraform validate
+    - terraform plan -var-file="terraform.tfvars"
+  rules:
+    - changes:
+        - infra/**/*
