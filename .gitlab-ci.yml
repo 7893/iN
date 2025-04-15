@@ -1,51 +1,52 @@
+image: node:22
+
 stages:
+  - install
   - lint
   - test
-  - plan
 
-# 1Ô∏è‚É£ Lint Èò∂ÊÆµ
-lint:
-  stage: lint
-  image: node:22
+default:
   before_script:
     - corepack enable
     - pnpm install --frozen-lockfile
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .pnpm-store
+    - node_modules
+    - apps/**/node_modules
+    - packages/**/node_modules
+
+install-deps:
+  stage: install
+  script:
+    - echo "‚úÖ Dependencies installed via before_script"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+lint:
+  stage: lint
   script:
     - pnpm lint
   rules:
-    - changes:
-        - "**/*.ts"
-        - "**/*.tsx"
-        - eslint.config.mjs
-        - pnpm-lock.yaml
+    - if: $CI_PIPELINE_SOURCE == "push"
 
-# 2Ô∏è‚É£ Test Èò∂ÊÆµ
 test:
   stage: test
-  image: node:22
-  before_script:
-    - corepack enable
-    - pnpm install --frozen-lockfile
   script:
     - pnpm test
   rules:
-    - changes:
-        - "**/*.test.ts"
-        - "**/*.test.tsx"
-        - "packages/**/*"
-        - "apps/**/*"
-        - pnpm-lock.yaml
+    - if: $CI_PIPELINE_SOURCE == "push"
 
-# 3Ô∏è‚É£ Terraform Plan Èò∂ÊÆµ
-terraform_plan:
-  stage: plan
-  image: hashicorp/terraform:1.6
-  before_script:
-    - cd infra
+check-gitlab-secrets:
+  stage: test
   script:
-    - terraform init -backend=false
-    - terraform validate
-    - terraform plan -var-file="terraform.tfvars"
+    - echo "Ì†ΩÌµµÔ∏è Checking GitLab secrets..."
+    - echo "Ì†ΩÌ¥ë RUNTIME_HMAC_SECRET length: ${#RUNTIME_HMAC_SECRET}"
+    - echo "Ì†ΩÌ¥ë RUNTIME_R2_S3_ACCESS_KEY_ID starts with: ${RUNTIME_R2_S3_ACCESS_KEY_ID:0:4}"
+    - echo "Ì†ΩÌ¥ë RUNTIME_R2_S3_ENDPOINT_DEFAULT: $RUNTIME_R2_S3_ENDPOINT_DEFAULT"
+    - echo "Ì†ΩÌ¥ë AXIOM_API_TOKEN length: ${#AXIOM_API_TOKEN}"
   rules:
-    - changes:
-        - infra/**/*
+    - if: $CI_PIPELINE_SOURCE == "push"
+
