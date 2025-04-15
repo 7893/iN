@@ -1,0 +1,20 @@
+# ~/iN/apps/iN-worker-B-config-api-20250402/wrangler.toml
+
+name = "in-worker-b-config-api-20250402"
+main = "src/index.ts"
+compatibility_date = "2025-04-15"
+account_id = "ed3e4f0448b71302675f2b436e5e8dd3"
+
+# --- 运行时绑定 ---
+
+# 绑定 D1 数据库 (用于管理用户配置)
+[[d1_databases]]
+binding = "DB" # 代码中使用的绑定名称 (env.DB)
+database_id = "159edc29-f854-4b2f-af1e-6a77a944d135" # D1 数据库的 ID
+
+# --- 其他 ---
+# 如果需要调用 Config Worker (C) 来触发任务，可能需要添加 Service Binding:
+# [[service_bindings]]
+# binding = "CONFIG_WORKER_SERVICE"
+# service = "in-worker-c-config-20250402"
+# 或者直接在此 Worker 中初始化 DO 和推送 Queue

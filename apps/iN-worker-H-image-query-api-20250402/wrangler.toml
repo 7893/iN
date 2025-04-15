@@ -1,0 +1,39 @@
+# ~/iN/apps/iN-worker-H-image-query-api-20250402/wrangler.toml
+
+# Worker 名称 (必须与 Terraform 中的 script_name 匹配)
+name = "in-worker-h-image-query-api-20250402"
+
+# 主入口脚本路径 (假设标准结构)
+main = "src/index.ts"
+
+# 兼容性日期
+compatibility_date = "2025-04-15" # 建议使用新日期
+
+# 账户 ID (硬编码)
+account_id = "ed3e4f0448b71302675f2b436e5e8dd3"
+
+# --- 运行时绑定 ---
+
+# 绑定 Durable Object (用于查询任务状态)
+[[durable_objects.bindings]]
+name = "TASK_COORDINATOR"           # 代码中使用的绑定名称 (env.TASK_COORDINATOR)
+namespace_id = "136a4671d0374175ac210bc5a2603434" # TaskCoordinatorDO 的 Namespace ID
+
+# 绑定 D1 数据库 (用于查询图片元数据/详情)
+[[d1_databases]]
+binding = "DB" # 代码中使用的绑定名称 (env.DB)
+database_id = "159edc29-f854-4b2f-af1e-6a77a944d135" # D1 数据库的 ID
+
+# 绑定 Vectorize Index (用于相似性搜索查询)
+# 注意：此索引需要手动或通过 wrangler 创建
+[[vectorize]]
+binding = "VECTORIZE_INDEX" # 代码中使用的绑定名称 (env.VECTORIZE_INDEX)
+index_name = "in-vectorize-a-index-20250402" # Vectorize Index 的名称
+
+# --- Secrets ---
+# (例如，如果需要特殊的只读数据库凭证？一般不需要)
+# 通过 env.SECRET_NAME 访问，确保已上传
+
+# --- Vars ---
+# [vars]
+# SEARCH_RESULT_LIMIT = 20

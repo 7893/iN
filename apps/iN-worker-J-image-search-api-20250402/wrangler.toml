@@ -1,0 +1,23 @@
+# ~/iN/apps/iN-worker-J-image-search-api-20250402/wrangler.toml
+
+name = "in-worker-j-image-search-api-20250402"
+main = "src/index.ts"
+compatibility_date = "2025-04-15"
+account_id = "ed3e4f0448b71302675f2b436e5e8dd3"
+
+# --- 运行时绑定 ---
+
+# 绑定 D1 数据库 (用于查询元数据以辅助搜索)
+[[d1_databases]]
+binding = "DB" # 代码中使用的绑定名称 (env.DB)
+database_id = "159edc29-f854-4b2f-af1e-6a77a944d135" # D1 数据库的 ID
+
+# 绑定 Vectorize Index (用于执行向量搜索)
+# 注意：此索引需要手动或通过 wrangler 创建
+[[vectorize]]
+binding = "VECTORIZE_INDEX" # 代码中使用的绑定名称 (env.VECTORIZE_INDEX)
+index_name = "in-vectorize-a-index-20250402" # Vectorize Index 的名称
+
+# --- Secrets / Vars ---
+# [vars]
+# SEARCH_DEFAULT_LIMIT = 50

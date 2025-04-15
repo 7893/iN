@@ -1,0 +1,32 @@
+# ~/iN/apps/iN-worker-C-config-20250402/wrangler.toml
+
+# Worker 名称 (必须与 Terraform 中的 script_name 匹配)
+name = "in-worker-c-config-20250402"
+
+# 主入口脚本路径 (假设标准结构)
+main = "src/index.ts"
+
+# 兼容性日期
+compatibility_date = "2025-04-15" # 建议使用新日期
+
+# 账户 ID (硬编码)
+account_id = "ed3e4f0448b71302675f2b436e5e8dd3"
+
+# --- 运行时绑定 ---
+
+# 绑定 Durable Object
+[[durable_objects.bindings]]
+name = "TASK_COORDINATOR"           # 代码中使用的绑定名称 (例如 env.TASK_COORDINATOR)
+namespace_id = "136a4671d0374175ac210bc5a2603434" # TaskCoordinatorDO 的 Namespace ID
+
+# 绑定 Queue (用于推送下载任务)
+[[queues.bindings]]
+binding = "IMAGE_DOWNLOAD_QUEUE" # 代码中使用的绑定名称 (例如 env.IMAGE_DOWNLOAD_QUEUE)
+queue_name = "in-queue-a-image-download-20250402" # 对应的 Queue 名称
+
+# --- 其他配置 ---
+
+# [vars] # 如果需要非敏感环境变量
+# MY_CONFIG_VAR = "value"
+
+# [build] # 通常不需要，Wrangler 会自动处理 .ts

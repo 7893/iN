@@ -1,44 +1,23 @@
 # ~/iN/apps/in/wrangler.toml
 # --- 配置 Worker "in"，用于提供前端静态应用 ---
 
-# Worker 名称，必须与 Terraform 中的 script_name 和 URL 子域名匹配
 name = "in"
-
-# Worker 的入口脚本。
-# 即使主要提供静态文件，通常也需要一个入口脚本。
-# Wrangler 的默认构建会处理它。
-# 这个脚本可以很简单，或者未来用于处理 API 代理、注入特殊头等。
 main = "src/index.ts"
-
-# 兼容性日期
-compatibility_date = "2025-04-15" # 建议使用当前日期
-
-# Cloudflare 账户 ID (硬编码)
+compatibility_date = "2025-04-15"
 account_id = "ed3e4f0448b71302675f2b436e5e8dd3"
 
-# [重要] 静态站点配置
-# 告诉 Wrangler 将哪个目录下的静态文件打包上传
+# 配置静态站点托管
 [site]
-bucket = "./dist" # 指向您前端应用构建后输出静态文件的【相对目录】。
-                  # 如果您的构建输出目录是 'build' 或其他名称，请修改这里！
+bucket = "./dist" # 【重要】确认此路径与您 pnpm build 的输出目录一致！
 
-# [说明] 构建配置
-# 无需显式定义 [build] 命令。Wrangler 会自动使用 esbuild 处理 src/index.ts。
-# 前端应用本身的构建 (例如 pnpm build) 应在部署前由您或 CI/CD 流程完成。
+# --- 运行时绑定 ---
 
-# [可选 - 运行时绑定]
-# 根据前端 Worker 的需要添加。例如，如果它需要调用后端 API Gateway:
-# [[service_bindings]]
-# binding = "API" # 代码中使用的名称 (例如 env.API.fetch(...))
-# service = "in-worker-a-api-gateway-20250402" # 要调用的 Worker 名称
+# 绑定 API Gateway (用于前端调用后端 API)
+[[service_bindings]]
+binding = "API" # 前端代码中使用的绑定名称 (例如 fetch(env.API, ...))
+service = "in-worker-a-api-gateway-20250402" # API Gateway Worker 名称
 
-# [[kv_namespaces]]
-# binding = "CONFIG_KV"
-# id = "..." # KV Namespace ID
-
-# [[secrets]] # 定义需要从 Cloudflare Secrets Store 读取的 Secrets (如果 env.SECRET_NAME 不能自动获取)
-# binding = "MY_RUNTIME_SECRET"
-# secret_name = "RUNTIME_XYZ"
-
-# [vars] # 定义非敏感环境变量
-# API_BASE_URL = "https://..."
+# --- Secrets / Vars ---
+# 如果前端 Worker 本身需要变量或 Secrets，在此添加
+# [vars]
+# PUBLIC_API_ENDPOINT = "https://in.53.workers.dev" # 示例：可能需要暴露给客户端 JS
