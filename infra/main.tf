@@ -1,5 +1,3 @@
-# ~/iN/infra/main.tf (最终确认版 - 无绑定)
-
 # --- Cloudflare D1 数据库 ---
 resource "cloudflare_d1_database" "main" {
   account_id = var.cloudflare_account_id
@@ -87,6 +85,19 @@ resource "cloudflare_workers_script" "frontend_worker" {
   account_id  = var.cloudflare_account_id
   script_name = "in"
   content     = "addEventListener('fetch', event => { event.respondWith(new Response('Worker [in] provisioned by Terraform - OK', { status: 200 })) })"
+}
+
+# --- Cloudflare Pages 前端项目 ---
+resource "cloudflare_pages_project" "frontend" {
+  account_id        = var.cloudflare_account_id
+  name              = "in"
+  production_branch = var.pages_production_branch # 通常是 "main"
+
+  build_config {
+    root_dir        = "apps/in-pages"
+    build_command   = "pnpm install && pnpm build"
+    destination_dir = "dist"
+  }
 }
 
 # --- 输出信息 ---
