@@ -1,4 +1,4 @@
-# Using YAML syntax structure
+# Start of .gitlab-ci.yml content
 
 stages:
   - lint
@@ -8,55 +8,63 @@ stages:
 
 default:
   image: node:20
-  # Runs before each job
+  # 这个脚本块会在每个 Job 开始前执行
   before_script:
     - corepack enable
     - corepack prepare pnpm@latest --activate
-    # Installs dependencies at the monorepo root
+    # 在 Monorepo 根目录安装所有依赖
+    # ！！！确保在推送前本地根目录运行过 pnpm install 并提交了 pnpm-lock.yaml！！！
     - pnpm install
-  # Optional: Define caching for node_modules and pnpm store
+  # 可选：为 node_modules 和 pnpm store 定义缓存以加速构建
   # cache:
-  #   key: ${CI_COMMIT_REF_SLUG}
+  #   key: ${CI_COMMIT_REF_SLUG} # 或者使用更复杂的缓存键策略
   #   paths:
-  #     - .pnpm-store
-  #     - node_modules
-  #     - "*/node_modules" # For workspace node_modules
+  #     - .pnpm-store/v3 # pnpm 存储路径
+  #     - node_modules # 根 node_modules
+  #     - 'apps/*/node_modules' # 工作区 node_modules (如果需要)
+  #     - 'packages/*/node_modules' # 工作区 node_modules (如果需要)
+  #   policy: pull-push # 拉取和推送缓存
 
 lint:
   stage: lint
   script:
-    # Runs linting at the monorepo root
+    # 在 Monorepo 根目录运行 Lint 命令
     - pnpm lint
 
 test:
   stage: test
   script:
-    # Runs tests at the monorepo root
+    # 在 Monorepo 根目录运行 Test 命令
+    # （注意：您可能需要修复 Vitest 和 coverage 工具的 peer dependency 警告）
     - pnpm test
 
 build:frontend:
   stage: build
   script:
-    # Builds only the 'in-pages' workspace/app
+    # 仅构建名为 'in-pages' 的工作区/应用
     - pnpm build --filter=in-pages
   artifacts:
     paths:
-      # Saves the build output relative to the project root
+      # 保存构建输出目录 (相对于项目根目录)
       - apps/in-pages/dist
-    expire_in: 1 hour # Optional: How long to keep artifacts
+    # 可选：设置产物过期时间
+    expire_in: 1 hour
 
 deploy:pages:
   stage: deploy
   script:
-    # Uses pnpm dlx to execute wrangler without global install
-    # Deploys the artifact from the build job to the correct Pages project
+    # 使用 pnpm dlx 执行 wrangler，避免全局安装
+    # 将 build:frontend Job 产生的构件部署到正确的 Pages 项目
+    # 确保 project-name 是 'in-pages'
     - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-dirty=true
-    # Alternative using commit hash (better practice if possible):
+    # 备选方案 (更佳实践，如果可行)：使用实际的 Git 提交信息
     # - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
-  needs: ["build:frontend"] # Depends on the build job and gets its artifacts
+  needs: ["build:frontend"] # 依赖 build:frontend Job 并获取其产物
   only:
-    # Runs only for commits pushed to the main branch
+    # 仅当代码被推送到 main 分支时运行
     - main
   environment:
-    # Associates this job with the 'production' environment in GitLab
+    # 将此 Job 关联到 GitLab 的 'production' 环境
     name: production
+
+# End of .gitlab-ci.yml content
