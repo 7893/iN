@@ -89,11 +89,12 @@ resource "cloudflare_workers_script" "image_search_api" {
 #}
 
 # --- Cloudflare Pages 前端项目 ---
-resource "cloudflare_pages_project" "frontend" {
+resource "cloudflare_pages_project" "frontend_pages" {
   account_id        = var.cloudflare_account_id
-  name              = "in"
-  production_branch = var.pages_production_branch
+  name                = "in-pages"
+  production_branch   = var.pages_production_branch
 
+  # 【修正语法】build_config 是一个参数，使用 '=' 赋值
   build_config = {
     build_command   = "pnpm install && pnpm build"
     destination_dir = "dist"
@@ -101,13 +102,63 @@ resource "cloudflare_pages_project" "frontend" {
   }
 }
 
-
 # --- 输出信息 ---
-output "d1_database_id" {
-  value = cloudflare_d1_database.main.id
+
+output "pages_project_name" {
+  description = "部署的 Cloudflare Pages 项目的名称。"
+  value       = cloudflare_pages_project.frontend_pages.name
 }
 
-output "all_worker_script_names" {
+output "pages_project_url" {
+  description = "部署的 Cloudflare Pages 项目的 URL。"
+  # 注意：url 属性可能在项目首次部署成功后才完全可用
+  value       = "https://${cloudflare_pages_project.frontend_pages.subdomain}.pages.dev"
+}
+
+output "d1_database_name" {
+  description = "D1 数据库的名称。"
+  value       = cloudflare_d1_database.main.name
+}
+
+output "d1_database_id" {
+  description = "D1 数据库的 ID。"
+  value       = cloudflare_d1_database.main.id
+}
+
+output "queue_details" {
+  description = "创建的 Cloudflare Queues 的详细信息 (名称和 ID)。"
+  value = {
+    imagedownload = {
+      name = cloudflare_queue.imagedownload.queue_name
+      id   = cloudflare_queue.imagedownload.id
+    }
+    imagedownload_dlq = {
+      name = cloudflare_queue.imagedownload_dlq.queue_name
+      id   = cloudflare_queue.imagedownload_dlq.id
+    }
+    metadataprocessing = {
+      name = cloudflare_queue.metadataprocessing.queue_name
+      id   = cloudflare_queue.metadataprocessing.id
+    }
+    metadataprocessing_dlq = {
+      name = cloudflare_queue.metadataprocessing_dlq.queue_name
+      id   = cloudflare_queue.metadataprocessing_dlq.id
+    }
+    aiprocessing = {
+      name = cloudflare_queue.aiprocessing.queue_name
+      id   = cloudflare_queue.aiprocessing.id
+    }
+    aiprocessing_dlq = {
+      name = cloudflare_queue.aiprocessing_dlq.queue_name
+      id   = cloudflare_queue.aiprocessing_dlq.id
+    }
+  }
+  # 如果您认为 Queue ID 是敏感信息，可以取消注释下一行
+  # sensitive = true
+}
+
+output "backend_worker_script_names" {
+  description = "部署的后端 Worker 脚本的名称列表。"
   value = [
     cloudflare_workers_script.api_gateway.script_name,
     cloudflare_workers_script.config_api.script_name,
@@ -119,6 +170,5 @@ output "all_worker_script_names" {
     cloudflare_workers_script.image_query_api.script_name,
     cloudflare_workers_script.image_mutation_api.script_name,
     cloudflare_workers_script.image_search_api.script_name,
-    #cloudflare_workers_script.frontend_worker.script_name,
   ]
 }
