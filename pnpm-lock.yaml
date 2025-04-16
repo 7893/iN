@@ -63,7 +63,7 @@ importers:
 
   apps/iN-worker-J-image-search-api-20250402: {}
 
-  apps/in:
+  apps/in-pages:
     dependencies:
       typescript:
         specifier: ^5.8.0

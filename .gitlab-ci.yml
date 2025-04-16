@@ -31,11 +31,13 @@ build:frontend:
     expire_in: 1h
 
 deploy:pages:
-  stage: deploy
-  script:
-    - npx wrangler pages deploy apps/in-pages/dist --project-name in
-  needs: ["build:frontend"]
-  only:
-    - main
-  environment:
-    name: production
+stage: deploy
+script:
+# 使用 pnpm dlx 执行 wrangler，无需全局安装
+# 修正 project-name 为 in-pages
+- pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-dirty=true
+needs: ["build:frontend"]
+only:
+- main
+environment:
+name: production
