@@ -81,11 +81,12 @@ resource "cloudflare_workers_script" "image_search_api" {
   script_name = "in-worker-j-image-search-api-20250402"
   content     = "addEventListener('fetch', event => { event.respondWith(new Response('Image Search API OK', { status: 200 })) })"
 }
-resource "cloudflare_workers_script" "frontend_worker" {
-  account_id  = var.cloudflare_account_id
-  script_name = "in"
-  content     = "addEventListener('fetch', event => { event.respondWith(new Response('Worker [in] provisioned by Terraform - OK', { status: 200 })) })"
-}
+
+#resource "cloudflare_workers_script" "frontend_worker" {
+#  account_id  = var.cloudflare_account_id
+#  script_name = "in"
+#  content     = "addEventListener('fetch', event => { event.respondWith(new Response('Worker [in] provisioned by Terraform - OK', { status: 200 })) })"
+#}
 
 # --- Cloudflare Pages 前端项目 ---
 resource "cloudflare_pages_project" "frontend" {
@@ -118,6 +119,6 @@ output "all_worker_script_names" {
     cloudflare_workers_script.image_query_api.script_name,
     cloudflare_workers_script.image_mutation_api.script_name,
     cloudflare_workers_script.image_search_api.script_name,
-    cloudflare_workers_script.frontend_worker.script_name,
+    #cloudflare_workers_script.frontend_worker.script_name,
   ]
 }

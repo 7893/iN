@@ -27,7 +27,7 @@ build:frontend:
     - pnpm build --filter=in-pages
   artifacts:
     paths:
-      - apps/in-pages/dist
+      - apps/in/dist
     expire_in: 1h
 
 deploy:pages:

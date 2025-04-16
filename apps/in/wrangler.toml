@@ -1,23 +1,27 @@
-# ~/iN/apps/in/wrangler.toml
-# --- 配置 Worker "in"，用于提供前端静态应用 ---
+# /home/ubuntu/iN/apps/in/wrangler.toml
+# --- 配置 Worker "in"，用于提供前端静态应用和代理 API 请求 ---
 
 name = "in"
-main = "src/index.ts"
+# 【重要修改】main 指向新的服务器端 Worker 脚本
+main = "worker.ts"
 compatibility_date = "2025-04-15"
 account_id = "ed3e4f0448b71302675f2b436e5e8dd3"
 
-# 配置静态站点托管
+# 配置静态站点托管 - Wrangler 会将 ./dist 内容上传
+# 当 worker.ts 调用 env.ASSET_SERVER.fetch 时，会从此目录提供文件
 [site]
-bucket = "./dist" # 【重要】确认此路径与您 pnpm build 的输出目录一致！
+bucket = "./dist"
 
 # --- 运行时绑定 ---
 
-# 绑定 API Gateway (用于前端调用后端 API)
-[[service_bindings]]
-binding = "API" # 前端代码中使用的绑定名称 (例如 fetch(env.API, ...))
-service = "in-worker-a-api-gateway-20250402" # API Gateway Worker 名称
+# 【重要修改】修正服务绑定格式，使用 [[services]]
+[[services]]
+# 在下面的 worker.ts 中使用的绑定名称 (env.API)
+binding = "API"
+# 您要绑定的实际后端 API Gateway Worker 的名称
+service = "in-worker-a-api-gateway-20250402"
 
 # --- Secrets / Vars ---
-# 如果前端 Worker 本身需要变量或 Secrets，在此添加
+# 如果此 Worker 需要其他变量或 Secrets，在此添加
 # [vars]
-# PUBLIC_API_ENDPOINT = "https://in.53.workers.dev" # 示例：可能需要暴露给客户端 JS
+# MY_VAR = "example"
