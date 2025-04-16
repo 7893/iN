@@ -1,3 +1,5 @@
+# Using YAML syntax structure
+
 stages:
   - lint
   - test
@@ -6,38 +8,55 @@ stages:
 
 default:
   image: node:20
+  # Runs before each job
   before_script:
     - corepack enable
     - corepack prepare pnpm@latest --activate
+    # Installs dependencies at the monorepo root
     - pnpm install
+  # Optional: Define caching for node_modules and pnpm store
+  # cache:
+  #   key: ${CI_COMMIT_REF_SLUG}
+  #   paths:
+  #     - .pnpm-store
+  #     - node_modules
+  #     - "*/node_modules" # For workspace node_modules
 
 lint:
   stage: lint
   script:
+    # Runs linting at the monorepo root
     - pnpm lint
 
 test:
   stage: test
   script:
+    # Runs tests at the monorepo root
     - pnpm test
 
 build:frontend:
   stage: build
   script:
+    # Builds only the 'in-pages' workspace/app
     - pnpm build --filter=in-pages
   artifacts:
     paths:
+      # Saves the build output relative to the project root
       - apps/in-pages/dist
-    expire_in: 1h
+    expire_in: 1 hour # Optional: How long to keep artifacts
 
 deploy:pages:
-stage: deploy
-script:
-# 使用 pnpm dlx 执行 wrangler，无需全局安装
-# 修正 project-name 为 in-pages
-- pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-dirty=true
-needs: ["build:frontend"]
-only:
-- main
-environment:
-name: production
+  stage: deploy
+  script:
+    # Uses pnpm dlx to execute wrangler without global install
+    # Deploys the artifact from the build job to the correct Pages project
+    - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-dirty=true
+    # Alternative using commit hash (better practice if possible):
+    # - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
+  needs: ["build:frontend"] # Depends on the build job and gets its artifacts
+  only:
+    # Runs only for commits pushed to the main branch
+    - main
+  environment:
+    # Associates this job with the 'production' environment in GitLab
+    name: production
