@@ -50,7 +50,7 @@ build:frontend:
     - echo "Checking if pnpm recognizes workspace:"
     - pnpm list -r --depth 0 --json | grep '"name": "in-pages"' || echo "Workspace 'in-pages' not found by pnpm list" # 看 pnpm 能否列出这个包
     - echo "--- End of debug ---"
-    # --- 原来的构建命令 ---
+    # --- 直接是构建命令 (第 51 行的注释已删除) ---
     - pnpm build --filter=in-pages
   artifacts:
     paths:
