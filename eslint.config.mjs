@@ -32,7 +32,13 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       ...tsPlugin.configs.recommended.rules,
+      // ✅ 忽略下划线开头未使用的变量（如 _request, _env, _ctx）
+      "@typescript-eslint/no-unused-vars": ["error", {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }],
+      // ✅ 允许空 interface（避免对某些类型声明报错）
+      "@typescript-eslint/no-empty-interface": "off",
     },
   },
 ];
-
