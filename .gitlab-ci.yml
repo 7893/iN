@@ -49,6 +49,8 @@ deploy:pages:
   script:
     # 使用实际的 Git 提交信息进行部署
     - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
+    - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-dirty=true
+
   needs: ["build:frontend"]
   only:
     - main
