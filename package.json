@@ -1,33 +1,26 @@
 {
-  "name": "in-monorepo-root", // 或者您项目的根名称
+  "name": "in-monorepo-root",
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    // 添加 lint 脚本，执行 ESLint 检查整个项目
     "lint": "eslint . --ext .ts,.tsx",
-    // 可以添加其他的根级脚本
-    "test": "vitest run", // 假设用 vitest 测试整个项目
-    "build": "pnpm -r build" // 示例：构建所有包 (需要各包有 build脚本)
-    // 或者使用 turbo "build": "turbo build"
+    "test": "vitest run",
+    "build": "pnpm -r build"
   },
-  "dependencies": {
-    // 根目录通常没有运行时依赖
-  },
+  "dependencies": {},
   "devDependencies": {
-    // 添加所有项目共享的开发依赖
-    "eslint": "^9.0.0", // 使用较新版本示例
+    "eslint": "^9.0.0",
     "@eslint/js": "^9.0.0",
-    "@typescript-eslint/parser": "^8.0.0", // 使用匹配TS插件的版本
+    "@typescript-eslint/parser": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "typescript": "^5.4.5", // 与 in-pages 保持一致或更高
-    "vitest": "^1.6.0", // 示例版本
-    "@vitest/coverage-c8": "^0.33.0", // 旧版本，注意 peer dep 问题
-    "@vitest/ui": "^3.1.1", // 旧版本示例
-    "@cloudflare/workers-types": "^4.20240405.0", // 与 in-pages 保持一致
-    "wrangler": "^3.0.0", // 推荐安装 wrangler 到根目录
-    "globals": "^15.0.0", // eslint 配置需要
-    "pnpm": "^10.8.1", // 可以显式声明 pnpm 版本
-    "turbo": "^2.0.0" // (可选) 如果您计划使用 Turborepo
-    // 根据需要添加其他共享开发依赖，如 prettier 等
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0",
+    "@vitest/coverage-c8": "^0.33.0",
+    "@vitest/ui": "^3.1.1",
+    "@cloudflare/workers-types": "^4.20240405.0",
+    "wrangler": "^3.0.0",
+    "globals": "^15.0.0",
+    "pnpm": "^10.8.1",
+    "turbo": "^2.0.0"
   }
 }
