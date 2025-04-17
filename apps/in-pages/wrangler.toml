@@ -1,7 +1,7 @@
 # /home/ubuntu/iN/apps/in/wrangler.toml
 # --- 配置 Worker "in"，用于提供前端静态应用和代理 API 请求 ---
 
-name = "in"
+name = "in-pages"
 # 【重要修改】main 指向新的服务器端 Worker 脚本
 main = "worker.ts"
 compatibility_date = "2025-04-15"
