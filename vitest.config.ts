@@ -8,10 +8,16 @@ export default defineConfig({
     environment: 'node', // 指定测试环境 (根据需要选择 'node', 'jsdom' 等)
     // ... 其他配置 ...
   },
-  // --- 关键：添加 deps.inline 配置 ---
   deps: {
+    // 保留之前的尝试，或者只用下面的 ssr 配置可能也行，但保留通常无害
     inline: [
-      'nanoid', // 告诉 Vitest 内联处理 nanoid
+      'nanoid',
     ],
+  },
+  // --- 添加 ssr.noExternal 配置 ---
+  // 即使不是 SSR 测试，Vitest 在 Node 环境下可能使用 Vite 的 SSR 管道
+  // noExternal 强制 Vitest/Vite 处理这个依赖，而不是视为外部依赖
+  ssr: {
+    noExternal: ['nanoid'],
   },
 });
