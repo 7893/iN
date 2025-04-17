@@ -23,6 +23,14 @@ database_id = "159edc29-f854-4b2f-af1e-6a77a944d135" # D1 数据库的 ID
 # (例如，如果需要连接外部认证服务，可能需要 Secret)
 # 通过 env.SECRET_NAME 访问，确保已上传
 
+# --- Secrets Bindings ---
+
+# 用于签发 JWT
+[[unsafe.bindings]]
+type = "secret_text"
+name = "JWT_SECRET"               # 代码中用 env.JWT_SECRET 访问
+text = "RUNTIME_JWT_SECRET"       # Secrets Store 中的密钥名称
+
 # --- Vars ---
 # [vars]
 # 如果需要非敏感环境变量，在此定义

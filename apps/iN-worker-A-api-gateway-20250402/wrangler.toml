@@ -32,6 +32,18 @@ service = "in-worker-j-image-search-api-20250402"
 # 不需要显式绑定。代码通过 env.RUNTIME_HMAC_SECRET 访问。
 # 确保 RUNTIME_HMAC_SECRET 已通过 wrangler secret put 上传。
 
+# 用于验证内部 HMAC 签名
+[[unsafe.bindings]]
+type = "secret_text"
+name = "INTERNAL_API_HMAC_SECRET" # 建议在代码中用这个名字访问
+text = "RUNTIME_HMAC_SECRET"      # Secrets Store 中的密钥名称
+
+# 用于验证 JWT 签名
+[[unsafe.bindings]]
+type = "secret_text"
+name = "JWT_SECRET"               # 建议在代码中用这个名字访问
+text = "RUNTIME_JWT_SECRET"       # Secrets Store 中的密钥名称
+
 # --- Vars ---
 # [vars]
 # 可定义如日志级别等非敏感配置
