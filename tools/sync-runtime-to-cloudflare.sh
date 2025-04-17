@@ -1,59 +1,49 @@
 #!/bin/bash
 
 # ~/iN/tools/sync-runtime-to-cloudflare.sh
-# This script syncs necessary runtime secrets to Cloudflare's Secrets Store
+# 将 .env.secrets 中的非 Cloudflare 变量上传到指定 Secrets Store
 
-# Ensure .env.secrets exists
 if [[ ! -f ~/iN/.env.secrets ]]; then
-    echo ".env.secrets file not found!"
+    echo "❌ .env.secrets 文件不存在！"
     exit 1
 fi
 
-# Load the secrets from .env.secrets
 source ~/iN/.env.secrets
 
-# Cloudflare account and API tokens should not be uploaded again to Cloudflare
-# Define the runtime secrets to sync (excluding Cloudflare and GitLab secrets)
-cf_secrets=(
-  "RUNTIME_UNSPLASH_ACCESS_KEY"
-  "RUNTIME_R2_S3_ACCESS_KEY_ID"
-  "RUNTIME_R2_S3_SECRET_ACCESS_KEY"
-  "RUNTIME_HMAC_SECRET"
-  "RUNTIME_EXTERNAL_AI_API_KEY"
-  "RUNTIME_R2_S3_ENDPOINT_DEFAULT"
-  "RUNTIME_R2_S3_ENDPOINT_EU"
-  "AXIOM_API_TOKEN"
-)
-
-# Define Cloudflare Secrets Store ID
-STORE_ID=$CLOUDFLARE_SECRET_STORE_ID
-
-# Check if the CLOUDFLARE_SECRET_STORE_ID is set
+STORE_ID="$CLOUDFLARE_SECRET_STORE_ID"
 if [[ -z "$STORE_ID" ]]; then
-    echo "CLOUDFLARE_SECRET_STORE_ID is not defined in .env.secrets!"
+    echo "❌ CLOUDFLARE_SECRET_STORE_ID 未设置。"
     exit 1
 fi
 
-echo "Syncing runtime secrets to Cloudflare..."
+echo "🔐 正在上传 secrets 到 Cloudflare Secrets Store：$STORE_ID"
 
-# Loop through the secrets and upload them to Cloudflare Secrets Store
-for secret in "${cf_secrets[@]}"; do
-    value="${!secret}"
-    if [[ -z "$value" ]]; then
-        echo "Skipping empty secret: $secret"
+while IFS='=' read -r key value; do
+    if [[ -z "$key" || "$key" =~ ^# || "$key" =~ ^CLOUDFLARE_ || "$key" == "STORE_ID" ]]; then
         continue
     fi
 
-    # Upload each secret to Cloudflare
-    echo "Syncing $secret to Cloudflare..."
-    npx wrangler secrets-store secret create $STORE_ID --name $secret --value "$value" --scopes workers --remote
+    if [[ -z "$value" ]]; then
+        echo "⏭️  跳过空值变量：$key"
+        continue
+    fi
+
+    echo "🧹 尝试先删除已存在的 $key（如果存在）..."
+    existing_secrets=$(wrangler secrets-store secret list "$STORE_ID" --remote 2>/dev/null)
+    secret_id=$(echo "$existing_secrets" | grep "$key" | awk -F '│' '{gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}')
+    if [[ -n "$secret_id" ]]; then
+        wrangler secrets-store secret delete "$STORE_ID" --secret-id "$secret_id" --remote >/dev/null 2>&1
+        echo "✅ 已删除 $key (ID: $secret_id)"
+    fi
+
+    echo "📤 创建新 secret：$key"
+    wrangler secrets-store secret create "$STORE_ID" --name "$key" --value "$value" --scopes workers --remote
 
     if [[ $? -eq 0 ]]; then
-        echo "$secret synced successfully to Cloudflare."
+        echo "✅ $key 上传成功"
     else
-        echo "Failed to sync $secret to Cloudflare."
+        echo "❌ $key 上传失败"
     fi
-done
+done < <(grep -E '^[A-Z0-9_]+=' ~/iN/.env.secrets)
 
-echo "Cloudflare secret sync complete!"
-
+echo "🎉 所有 secrets 已同步完成！"

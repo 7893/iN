@@ -1,55 +1,54 @@
 #!/bin/bash
 
-# ~/iN/tools/clear-secrets-from-gitlab.sh
-# This script clears GitLab CI/CD environment variables
+# ~/iN/tools/clear-all-secrets-from-gitlab.sh
+# 清空 GitLab 项目中所有 CI/CD 环境变量（慎用！）
 
-# Ensure .env.secrets exists
-if [[ ! -f ~/iN/.env.secrets ]]; then
-    echo ".env.secrets file not found!"
-    exit 1
+SECRETS_FILE="$HOME/iN/.env.secrets"
+
+if [[ ! -f "$SECRETS_FILE" ]]; then
+  echo "❌ .env.secrets 文件不存在: $SECRETS_FILE"
+  exit 1
 fi
 
-# Load the secrets from .env.secrets
-source ~/iN/.env.secrets
+source "$SECRETS_FILE"
 
-# Define the GitLab secrets to clear
-gitlab_secrets=(
-  "CLOUDFLARE_ACCOUNT_ID"
-  "TF_VAR_cloudflare_account_id"
-  "CLOUDFLARE_API_TOKEN"
-  "CLOUDFLARE_R2_API_TOKEN"
-  "TF_VAR_cloudflare_workers_dev_account_name"
-  "GITLAB_PAT"
-  "GITLAB_PROJECT_ID"
-  "GITLAB_PROJECT_NAME"
-  "GITLAB_OWNER"
-  "RUNTIME_UNSPLASH_ACCESS_KEY"
-  "RUNTIME_R2_S3_ACCESS_KEY_ID"
-  "RUNTIME_R2_S3_SECRET_ACCESS_KEY"
-  "RUNTIME_HMAC_SECRET"
-  "RUNTIME_EXTERNAL_AI_API_KEY"
-  "RUNTIME_R2_S3_ENDPOINT_DEFAULT"
-  "RUNTIME_R2_S3_ENDPOINT_EU"
-  "AXIOM_API_TOKEN"
-)
+if [[ -z "$GITLAB_PROJECT_ID" || -z "$GITLAB_PAT" ]]; then
+  echo "❌ GITLAB_PROJECT_ID 或 GITLAB_PAT 未在 .env.secrets 中设置"
+  exit 1
+fi
 
-echo "Clearing GitLab CI/CD environment variables..."
+GITLAB_API_URL="https://gitlab.com/api/v4"
 
-# Loop through each variable and delete it from GitLab
-for secret in "${gitlab_secrets[@]}"; do
-    echo "Clearing $secret from GitLab..."
-    
-    # Delete the secret from GitLab CI/CD environment variables
-    curl --request DELETE \
-        --header "PRIVATE-TOKEN: $GITLAB_PAT" \
-        "https://gitlab.com/api/v4/projects/$GITLAB_PROJECT_ID/variables/$secret"
-    
-    if [[ $? -eq 0 ]]; then
-        echo "$secret cleared successfully from GitLab."
-    else
-        echo "Failed to clear $secret from GitLab."
-    fi
+echo "🚨 即将清除 GitLab 项目 ID: $GITLAB_PROJECT_ID 的所有 CI/CD 环境变量..."
+echo "⚠️  本操作不可撤销，是否继续？[y/N]"
+read -r confirm
+if [[ "$confirm" != "y" ]]; then
+  echo "❎ 已取消"
+  exit 0
+fi
+
+# 获取所有变量名
+echo "📥 获取 GitLab 当前环境变量列表..."
+all_keys=$(curl -sS --header "PRIVATE-TOKEN: $GITLAB_PAT" \
+  "$GITLAB_API_URL/projects/$GITLAB_PROJECT_ID/variables" | jq -r '.[].key')
+
+if [[ -z "$all_keys" ]]; then
+  echo "✅ 没有找到需要删除的变量。"
+  exit 0
+fi
+
+# 遍历并删除
+for key in $all_keys; do
+  echo "🗑️  删除 $key..."
+  curl -sS --request DELETE \
+       --header "PRIVATE-TOKEN: $GITLAB_PAT" \
+       "$GITLAB_API_URL/projects/$GITLAB_PROJECT_ID/variables/$key"
+
+  if [[ $? -eq 0 ]]; then
+    echo "✅ $key 已删除"
+  else
+    echo "❌ 删除 $key 失败"
+  fi
 done
 
-echo "GitLab variable clearing complete!"
-
+echo "🎉 GitLab CI/CD 变量已全部清除！"
