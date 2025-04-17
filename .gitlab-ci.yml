@@ -1,77 +1,58 @@
-# Start of .gitlab-ci.yml content
-
+---
 stages:
   - lint
   - test
   - build
   - deploy
-
 default:
   image: node:20
-  # 这个脚本块会在每个 Job 开始前执行
   before_script:
     - corepack enable
     - corepack prepare pnpm@latest --activate
-    # 在 Monorepo 根目录安装所有依赖
-    # ！！！确保在推送前本地根目录运行过 pnpm install 并提交了 pnpm-lock.yaml！！！
     - pnpm install
-  # 可选：为 node_modules 和 pnpm store 定义缓存以加速构建
-  # cache:
-  #   key: ${CI_COMMIT_REF_SLUG} # 或者使用更复杂的缓存键策略
-  #   paths:
-  #     - .pnpm-store/v3 # pnpm 存储路径
-  #     - node_modules # 根 node_modules
-  #     - 'apps/*/node_modules' # 工作区 node_modules (如果需要)
-  #     - 'packages/*/node_modules' # 工作区 node_modules (如果需要)
-  #   policy: pull-push # 拉取和推送缓存
-
 lint:
   stage: lint
   script:
-    # 在 Monorepo 根目录运行 Lint 命令
     - pnpm lint
-
 test:
   stage: test
   script:
-    # 在 Monorepo 根目录运行 Test 命令
-    # （注意：您可能需要修复 Vitest 和 coverage 工具的 peer dependency 警告）
     - pnpm test
-
 build:frontend:
   stage: build
-  script:
-    # --- 添加调试命令 ---
-    - echo "Current directory: $(pwd)"
-    - echo "Listing apps/in-pages directory:"
-    - ls -la apps/in-pages/
-    - echo "Content of apps/in-pages/package.json:"
-    - cat apps/in-pages/package.json # 检查 CI 环境中的 name 和 scripts
-    - echo "Checking if pnpm recognizes workspace:"
-    - pnpm list -r --depth 0 --json | grep '"name": "in-pages"' || echo "Workspace 'in-pages' not found by pnpm list" # 看 pnpm 能否列出这个包
-    - echo "--- End of debug ---"
-    # --- 直接是构建命令 (第 51 行的注释已删除) ---
-    - pnpm build --filter=in-pages
+  script: >
+    echo "Current directory: $(pwd)"
+
+    echo "Listing apps/in-pages directory:"
+
+    ls -la apps/in-pages/
+
+    echo "Content of apps/in-pages/package.json:"
+
+    cat apps/in-pages/package.json
+
+    echo "Checking if pnpm recognizes workspace:"
+
+    # 下面这行复杂的命令现在可以直接写，无需担心 YAML 转义
+
+    pnpm list -r --depth 0 --json | grep '"name": "in-pages"' || echo "Workspace 'in-pages' not found by pnpm list"
+
+    echo "--- End of debug ---"
+
+    pnpm build --filter=in-pages
   artifacts:
     paths:
       - apps/in-pages/dist
     expire_in: 1 hour
-
 deploy:pages:
   stage: deploy
   script:
-    # 使用 pnpm dlx 执行 wrangler，避免全局安装
-    # 将 build:frontend Job 产生的构件部署到正确的 Pages 项目
-    # 确保 project-name 是 'in-pages'
-    - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-dirty=true
-    # 备选方案 (更佳实践，如果可行)：使用实际的 Git 提交信息
-    # - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
-  needs: ["build:frontend"] # 依赖 build:frontend Job 并获取其产物
+    - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages
+      --commit-dirty=true
+  needs:
+    - build:frontend
   only:
-    # 仅当代码被推送到 main 分支时运行
     - main
   environment:
-    # 将此 Job 关联到 GitLab 的 'production' 环境
     name: production
 
-# End of .gitlab-ci.yml content
