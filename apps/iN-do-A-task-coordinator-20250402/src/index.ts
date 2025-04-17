@@ -5,6 +5,8 @@
 
 // 定义 Env 类型，至少包含 DO 自身的绑定 (如果需要内部调用)
 // 后续可以添加此 DO 需要访问的其他绑定 (如 D1, R2, Queues, Secrets)
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface Env {
   TASK_COORDINATOR_DO: DurableObjectNamespace;
   // Example: DB: D1Database;
