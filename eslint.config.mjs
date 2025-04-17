@@ -26,7 +26,7 @@ export default [
         DurableObjectState: "readonly",
         ExecutionContext: "readonly",
         FetchEvent: "readonly",         // 用于非 Module Worker 或 ScheduledEvent
-        Fetcher: "readonly",            // <--- 添加，用于 Service Bindings (解决 'Fetcher is not defined')
+        Fetcher: "readonly",            // 用于 Service Bindings
         Request: "readonly",            // Web 标准
         Response: "readonly",           // Web 标准
         Headers: "readonly",            // Web 标准
@@ -64,6 +64,9 @@ export default [
 
       // 允许空 interface（例如: interface Env {}）
       "@typescript-eslint/no-empty-interface": "off",
+
+      // 全局关闭 no-empty-object-type 规则 (因为行内禁用未生效)
+      "@typescript-eslint/no-empty-object-type": "off", // <--- 添加的修改
 
       // (可选) 根据团队偏好添加或修改其他规则
       // "indent": ["error", 2], // 例如：强制 2 个空格缩进
