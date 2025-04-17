@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "wrangler deploy --dry-run --out-dir=dist",
     "preview": "vite preview"
   },
   "dependencies": {
