@@ -1,23 +1,14 @@
 {
-  "name": "iN",
+  "name": "in-pages",
   "private": true,
+  "version": "0.1.0",
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "test": "vitest run"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250415.0",
-    "@eslint/js": "^9.24.0",
-    "@typescript-eslint/eslint-plugin": "^8.30.1",
-    "@typescript-eslint/parser": "^8.30.1",
-    "@vitest/coverage-c8": "^0.33.0",
-    "@vitest/ui": "^3.1.1",
-    "eslint": "^9.24.0",
-    "globals": "^16.0.0",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.1"
-  },
-  "dependencies": {
-    "nanoid": "^5.1.5"
+    "vite": "^5.0.0",
+    "typescript": "^5.8.0"
   }
 }

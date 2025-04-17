@@ -4,13 +4,13 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "vite",
-    "build": "echo 'Nothing to build, dist/ is ready.'",
+    "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
+  "devDependencies": {
     "vite": "^5.0.0",
-    "typescript": "^5.8.0"
-  },
-  "devDependencies": {}
+    "typescript": "^5.8.0",
+    "@types/node": "^20.11.0"
+  }
 }
 
