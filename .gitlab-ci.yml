@@ -41,13 +41,20 @@ test:
 build:frontend:
   stage: build
   script:
-    # 仅构建名为 'in-pages' 的工作区/应用
+    # --- 添加调试命令 ---
+    - echo "Current directory: $(pwd)"
+    - echo "Listing apps/in-pages directory:"
+    - ls -la apps/in-pages/
+    - echo "Content of apps/in-pages/package.json:"
+    - cat apps/in-pages/package.json # 检查 CI 环境中的 name 和 scripts
+    - echo "Checking if pnpm recognizes workspace:"
+    - pnpm list -r --depth 0 --json | grep '"name": "in-pages"' || echo "Workspace 'in-pages' not found by pnpm list" # 看 pnpm 能否列出这个包
+    - echo "--- End of debug ---"
+    # --- 原来的构建命令 ---
     - pnpm build --filter=in-pages
   artifacts:
     paths:
-      # 保存构建输出目录 (相对于项目根目录)
       - apps/in-pages/dist
-    # 可选：设置产物过期时间
     expire_in: 1 hour
 
 deploy:pages:
