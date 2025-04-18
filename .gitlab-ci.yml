@@ -26,7 +26,7 @@ gitleaks_scan:
   image:
     name: zricethezav/gitleaks:latest
     entrypoint: [""]
-  before_script: []  # 防止继承默认 Node before_script
+  before_script: []
   script:
     - gitleaks detect --source=. --report-format sarif --report-path gitleaks-report.sarif --verbose --redact
   artifacts:
@@ -37,16 +37,18 @@ gitleaks_scan:
 
 build:frontend:
   stage: build
-  script: >
-    echo "Current directory: $(pwd)"
-    echo "Listing apps/in-pages directory:"
-    ls -la apps/in-pages/
-    echo "Content of apps/in-pages/package.json:"
-    cat apps/in-pages/package.json
-    echo "Checking if pnpm recognizes workspace:"
-    pnpm list -r --depth 0 --json | grep '"name": "in-pages"' || echo "Workspace 'in-pages' not found by pnpm list"
-    echo "--- End of debug ---"
-    pnpm build --filter=in-pages
+  only:
+    - main
+  script:
+    - echo "📁 当前目录: $(pwd)"
+    - echo "📦 列出 apps/in-pages 内容:"
+    - ls -la apps/in-pages/
+    - echo "📄 apps/in-pages/package.json:"
+    - cat apps/in-pages/package.json
+    - echo "🔍 检查 pnpm workspace:"
+    - pnpm list -r --depth 0 --json | grep '"name": "in-pages"' || echo "Workspace 'in-pages' not found"
+    - echo "--- ⛏️ 开始构建 in-pages ---"
+    - pnpm build --filter=in-pages
   artifacts:
     paths:
       - apps/in-pages/dist
@@ -54,11 +56,10 @@ build:frontend:
 
 deploy:pages:
   stage: deploy
-  script:
-    - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
-    - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-dirty=true
   needs: ["build:frontend"]
   only:
     - main
+  script:
+    - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
   environment:
     name: production
