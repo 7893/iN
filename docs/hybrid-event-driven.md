@@ -1,79 +1,80 @@
-# Why We Adopted Hybrid Event-Driven Architecture
+# 我们为何采用 **混合事件驱动架构**
 
-## 📌 Background Motivation
+## 📌 背景动机
 
-The iN project is essentially a **multi-stage image processing system**, involving:
+iN 项目本质上是一个**多阶段图片处理系统**，涵盖：
 
-- Downloading raw images
-- Extracting metadata
-- AI analysis and vector generation
-- Search, query, and display
+- 原始图片下载  
+- 元数据提取  
+- AI 分析与向量生成  
+- 搜索、查询与展示  
 
-This workflow is **asynchronous, segmentable, and event-sensitive**, with side-effect logic like user notifications and indexing. It is well-suited to an **event-driven approach**, but also requires **strong consistency and traceability**, especially for status management and core flow control.
+该流程具有 **异步、可拆分、事件敏感** 等特点，同时又要求 **强一致性与可追踪性**（核心状态管理不可失控）。  
+因此，我们没有完全走纯事件驱动，而是选择：
 
-Thus, we did not fully embrace a pure event-driven architecture but opted for:
-
-> **Hybrid Event-Driven Architecture**
-
----
-
-## ✅ Reasons for Adoption
-
-1. **Precise control & state tracking** for core workflows
-   - Using **Task Queues + Durable Objects** to ensure determinism and idempotency.
-
-2. **Decoupled handling for side effects**
-   - Side logics like notification or analytics don’t need to block core flows and are better handled asynchronously.
-
-3. **Maintain system clarity & scalability**
-   - Separates deterministic core logic from optional subscriber-driven flows for better maintainability and testing.
+> **混合（Hybrid）事件驱动架构**
 
 ---
 
-## 🌱 Implementation in iN
+## ✅ 采用理由
 
-| Layer | Mechanism | Explanation |
-|-------|-----------|-------------|
-| Core Workflow | Task Queues + Durable Objects | Strict control: Download -> Metadata -> AI |
-| Event Publication | Optional in Workers (e.g. image.downloaded) | Workers may publish when processing succeeds |
-| Event Subscribers | Pluggable Workers (e.g. notification-worker) | Consume from Event Queues |
-| Event Interface | Provided in `shared-libs/events/` | Standard `INEvent<T>` interface |
-| Event Queues | (Optional) ImageEventsQueue, TaskLifecycleEventsQueue | Enable pub/sub with DLQ support |
+1. **核心流程需精确控制与状态跟踪**  
+   - 通过 **Task Queues + Durable Objects** 保证确定性与幂等。
 
----
+2. **副作用解耦**  
+   - 通知、分析、索引等旁路逻辑无需阻塞主干，可异步处理。
 
-## 🌈 Benefits
-
-- ✅ Clear control in core logic
-- ✅ Scalable & decoupled side-effect handling
-- ✅ Improved observability (auditable events)
-- ✅ Highly extensible, supports future plugin-based development
+3. **保持系统清晰与可扩展**  
+   - 将确定性主链与可插拔订阅逻辑分离，便于维护与测试。
 
 ---
 
-## ⚠️ Design Principles
+## 🌱 在 iN 中的落地
 
-- **Events should be facts, not commands**  
-  E.g., `image.downloaded` signals completion, not a request.
-
-- **All subscribers must be idempotent**  
-  Duplicate events should never cause duplicate effects.
-
-- **Failure in subscriber must not block main flow**  
-  Use DLQs and fallback gracefully.
-
-- **Main flow is never modeled as an event chain**  
-  Ensures stronger traceability and control.
+| 层级 | 机制 | 说明 |
+|------|------|------|
+| 核心工作流 | Task Queue + Durable Object | 严格控制：Download → Metadata → AI |
+| 事件发布 | Worker 内按需发布 (如 `image.downloaded`) | 处理成功即可发事件 |
+| 事件订阅 | 可热插拔 Worker (如 notification‑worker) | 消费 Event Queues |
+| 事件接口 | `shared-libs/events/` | 统一 `INEvent<T>` 定义 |
+| 事件队列 | （可选）ImageEventsQueue / TaskLifecycleEventsQueue | 支持 Pub/Sub + DLQ |
 
 ---
 
-## 🔭 Future Evolution
+## 🌈 收获的优势
 
-- Current event queues and definitions are available but **optional**.
-- System can be easily extended with new subscribers (e.g., recommenders, loggers, tag enhancers).
+- ✅ 主链逻辑可控且清晰  
+- ✅ 副作用解耦、弹性扩展  
+- ✅ 可观测性提升（事件可审计）  
+- ✅ 易于未来插件式演进  
 
 ---
 
-## 📘 Summary
+## ⚠️ 设计原则
 
-> The iN project adopts a **Hybrid Event-Driven Architecture**, using task queues for reliable control of core workflows, and event queues for decoupled side-effect broadcasting. This pattern strikes a balance between structure and flexibility, suitable for modern distributed systems.
+- **事件是事实，不是命令**  
+  如 `image.downloaded` 表示“已完成下载”，而非“请下载”。
+
+- **所有订阅端必须幂等**  
+  重复事件不会造成重复副作用。
+
+- **订阅失败不能阻塞主链**  
+  借助 DLQ 与降级策略。
+
+- **主链永不以事件串联**  
+  保证关键路径一致性与可追踪。
+
+---
+
+## 🔭 未来演进
+
+- 事件队列与接口已准备好，但**是否启用完全可选**。  
+- 日后可轻松接入新订阅者（推荐、人脸识别、日志增强等）。
+
+---
+
+## 📘 总结
+
+> iN 采用 **混合事件驱动架构**：  
+> 主流程用任务队列确保可靠与一致，副作用用事件队列实现松耦合广播。  
+> 既有结构化控制，又保留灵活扩展，符合现代分布式系统的最佳实践。
