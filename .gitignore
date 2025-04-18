@@ -1,12 +1,14 @@
-# Node modules
-node_modules/
+# Node modules (全局忽略)
+**/node_modules/
 
-# Distribution and build folders
-dist/
-build/
+# Build / Distribution folders
+**/dist/
+**/build/
 
-# Turbo directory
+# pnpm / Turbo / local cache
 .turbo/
+.pnpm-debug.log
+pnpm-lock.yaml
 
 # macOS system files
 .DS_Store
@@ -14,17 +16,19 @@ build/
 # Log files
 *.log
 
-# 忽略 .env.secrets 文件
-/.env.secrets
+# 环境变量 - 明确排除私密文件
+.env.secrets
 
+# Terraform state and cache
+**/.terraform/
+**/*.tfstate*
+infra/terraform.tfvars  # 如 tfvars 有敏感变量建议也忽略
 
+# Vitest snapshot / coverage (如启用)
+coverage/
+*.snap
 
-# Terraform state and providers cache
-infra/.terraform/
-infra/terraform.tfstate
-infra/terraform.tfstate.backup
-# 使用通配符可以合并上面两行:
-# infra/*.tfstate*
-
-# 确保这行存在 (您之前的文件里已经有了)
-infra/terraform.tfvars
+# 编辑器文件（可选）
+.vscode/
+.idea/
+*.swp
