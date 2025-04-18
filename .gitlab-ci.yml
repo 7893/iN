@@ -25,7 +25,8 @@ gitleaks_scan:
   stage: test
   image:
     name: zricethezav/gitleaks:latest
-    entrypoint: [""]  # 防止尝试运行 'sh' 命令
+    entrypoint: [""]
+  before_script: []   # ✅ 取消继承全局 before_script
   script:
     - gitleaks detect --source=. --report=gitleaks-report.sarif --verbose --redact
   artifacts:
@@ -33,6 +34,7 @@ gitleaks_scan:
       - gitleaks-report.sarif
     expire_in: 1 week
   allow_failure: false
+
 
 
 build:frontend:
