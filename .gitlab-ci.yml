@@ -26,16 +26,14 @@ gitleaks_scan:
   image:
     name: zricethezav/gitleaks:latest
     entrypoint: [""]
-  before_script: []   # ✅ 取消继承全局 before_script
+  before_script: []  # 防止继承默认 Node before_script
   script:
-    - gitleaks detect --source=. --report=gitleaks-report.sarif --verbose --redact
+    - gitleaks detect --source=. --report-format sarif --report-path gitleaks-report.sarif --verbose --redact
   artifacts:
     paths:
       - gitleaks-report.sarif
     expire_in: 1 week
   allow_failure: false
-
-
 
 build:frontend:
   stage: build
