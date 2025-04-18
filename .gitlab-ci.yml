@@ -1,59 +1,63 @@
----
 stages:
   - lint
   - test
   - build
   - deploy
+
 default:
   image: node:20
   before_script:
     - corepack enable
     - corepack prepare pnpm@latest --activate
     - pnpm install
+
 lint:
   stage: lint
   script:
     - pnpm lint
+
 test:
   stage: test
   script:
     - pnpm test
+
+gitleaks_scan:
+  stage: test
+  image: zricethezav/gitleaks:latest
+  script:
+    - gitleaks detect --source=. --report=gitleaks-report.sarif --verbose --redact
+  artifacts:
+    paths:
+      - gitleaks-report.sarif
+    expire_in: 1 week
+  allow_failure: false
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_MERGE_REQUEST_ID'  # 仅在主分支或合并请求时执行
+
 build:frontend:
   stage: build
   script: >
     echo "Current directory: $(pwd)"
-
     echo "Listing apps/in-pages directory:"
-
     ls -la apps/in-pages/
-
     echo "Content of apps/in-pages/package.json:"
-
     cat apps/in-pages/package.json
-
     echo "Checking if pnpm recognizes workspace:"
-
-    # 下面这行复杂的命令现在可以直接写，无需担心 YAML 转义
-
     pnpm list -r --depth 0 --json | grep '"name": "in-pages"' || echo "Workspace 'in-pages' not found by pnpm list"
-
     echo "--- End of debug ---"
-
     pnpm build --filter=in-pages
   artifacts:
     paths:
       - apps/in-pages/dist
     expire_in: 1 hour
+
 deploy:pages:
   stage: deploy
   script:
-    # 使用实际的 Git 提交信息进行部署
     - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
     - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-dirty=true
-
   needs: ["build:frontend"]
   only:
     - main
   environment:
     name: production
-
