@@ -37,8 +37,8 @@ gitleaks_scan:
 
 build:frontend:
   stage: build
-  only:
-    - main
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'  # 确保只在主分支触发
   script:
     - echo "📁 当前目录: $(pwd)"
     - echo "📦 列出 apps/in-pages 内容:"
@@ -56,9 +56,8 @@ build:frontend:
 
 deploy:pages:
   stage: deploy
-  needs: ["build:frontend"]
-  only:
-    - main
+  needs:
+    - build:frontend
   script:
     - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
   environment:
