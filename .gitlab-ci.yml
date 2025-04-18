@@ -56,10 +56,15 @@ build:frontend:
 
 deploy:pages:
   stage: deploy
-  needs: ["build:frontend"]
+  needs: 
+    - build:frontend
   only:
     - main
   script:
-    - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
+    - |
+      pnpm dlx wrangler pages deploy apps/in-pages/dist \
+        --project-name=in-pages \
+        --commit-hash=$CI_COMMIT_SHA \
+        --commit-message="$CI_COMMIT_MESSAGE"
   environment:
     name: production
