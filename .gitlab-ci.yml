@@ -38,7 +38,7 @@ gitleaks_scan:
 build:frontend:
   stage: build
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'  # 确保只在主分支触发
+    - if: '$CI_COMMIT_BRANCH == "main"'  # 仅在 main 分支触发构建
   script:
     - echo "📁 当前目录: $(pwd)"
     - echo "📦 列出 apps/in-pages 内容:"
@@ -51,14 +51,15 @@ build:frontend:
     - pnpm build --filter=in-pages
   artifacts:
     paths:
-      - apps/in-pages/dist
+      - apps/in-pages/dist  # 保存构建产物
     expire_in: 1 hour
 
 deploy:pages:
   stage: deploy
-  needs:
-    - build:frontend
+  needs: ["build:frontend"]  # 明确依赖 build 阶段
   script:
     - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
   environment:
     name: production
+  only:
+    - main  # 仅主分支部署
