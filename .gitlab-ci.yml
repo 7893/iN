@@ -23,7 +23,9 @@ test:
 
 gitleaks_scan:
   stage: test
-  image: zricethezav/gitleaks:latest
+  image:
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]  # 防止尝试运行 'sh' 命令
   script:
     - gitleaks detect --source=. --report=gitleaks-report.sarif --verbose --redact
   artifacts:
@@ -31,8 +33,7 @@ gitleaks_scan:
       - gitleaks-report.sarif
     expire_in: 1 week
   allow_failure: false
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main" || $CI_MERGE_REQUEST_ID'  # 仅在主分支或合并请求时执行
+
 
 build:frontend:
   stage: build
