@@ -1,36 +1,48 @@
-# Node modules
-**/node_modules/
+# ========================
+# 📦 Node.js / Build
+# ========================
 
-# Build / Distribution folders
+**/node_modules/
 **/dist/
 **/build/
 
-# 保留 in-pages 的 dist 目录（用于 Cloudflare Pages）
+# ✅ 保留 Cloudflare Pages 构建产物
 !apps/in-pages/dist/
 !apps/in-pages/dist/**/*
 
-# Local tool / cache / debug
+# ========================
+# 🛠 工具 & 缓存
+# ========================
+
 .turbo/
 .pnpm-debug.log
 *.log
 
-# Wrangler
+# Wrangler 本地配置
 **/.wrangler/
 
-# macOS system files
-.DS_Store
+# ========================
+# 🖥 系统 & 编辑器
+# ========================
 
-# Secrets and env files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# ========================
+# 🔐 Secrets / Env
+# ========================
+
 .env.secrets
 .env.local
 .env.*.local
 
-# Terraform
+# ========================
+# ☁️ Terraform
+# ========================
+
 **/.terraform/
 **/*.tfstate*
+infra/*.tfstate*
 infra/terraform.tfvars
-
-# IDE / Editor config
-.vscode/
-.idea/
-*.swp
