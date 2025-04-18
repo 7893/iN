@@ -1,34 +1,36 @@
-# Node modules (全局忽略)
+# Node modules
 **/node_modules/
 
 # Build / Distribution folders
 **/dist/
 **/build/
 
-# pnpm / Turbo / local cache
+# 保留 in-pages 的 dist 目录（用于 Cloudflare Pages）
+!apps/in-pages/dist/
+!apps/in-pages/dist/**/*
+
+# Local tool / cache / debug
 .turbo/
 .pnpm-debug.log
-pnpm-lock.yaml
+*.log
+
+# Wrangler
+**/.wrangler/
 
 # macOS system files
 .DS_Store
 
-# Log files
-*.log
-
-# 环境变量 - 明确排除私密文件
+# Secrets and env files
 .env.secrets
+.env.local
+.env.*.local
 
-# Terraform state and cache
+# Terraform
 **/.terraform/
 **/*.tfstate*
-infra/terraform.tfvars  # 如 tfvars 有敏感变量建议也忽略
+infra/terraform.tfvars
 
-# Vitest snapshot / coverage (如启用)
-coverage/
-*.snap
-
-# 编辑器文件（可选）
+# IDE / Editor config
 .vscode/
 .idea/
 *.swp
