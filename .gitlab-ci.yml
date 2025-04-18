@@ -4,6 +4,9 @@ stages:
   - build
   - deploy
 
+# --------------------------------------------------
+# 🌐 全局设置
+# --------------------------------------------------
 default:
   image: node:20
   before_script:
@@ -11,55 +14,67 @@ default:
     - corepack prepare pnpm@latest --activate
     - pnpm install
 
+# --------------------------------------------------
+# 🧹 代码质量
+# --------------------------------------------------
 lint:
   stage: lint
   script:
     - pnpm lint
 
-test:
+# --------------------------------------------------
+# 🧪 单元测试
+# --------------------------------------------------
+unit_tests:
   stage: test
   script:
     - pnpm test
 
+# --------------------------------------------------
+# 🔐 Gitleaks 安全扫描
+# --------------------------------------------------
 gitleaks_scan:
   stage: test
-  image:
-    name: zricethezav/gitleaks:latest
-    entrypoint: [""]
-  before_script: []
+  image: zricethezav/gitleaks:latest
+  entrypoint: [""]
+  before_script: []          # 不继承 Node 的 before_script
   script:
-    - gitleaks detect --source=. --report-format sarif --report-path gitleaks-report.sarif --verbose --redact
+    - gitleaks detect --source=. --report-format sarif \
+        --report-path gitleaks-report.sarif --verbose --redact
   artifacts:
     paths:
       - gitleaks-report.sarif
     expire_in: 1 week
   allow_failure: false
 
-build:frontend:
+# --------------------------------------------------
+# 🛠️  构建前端 (仅 main 分支)
+# --------------------------------------------------
+build_frontend:
   stage: build
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'  # 仅在 main 分支触发构建
+    - if: '$CI_COMMIT_BRANCH == "main"'
   script:
-    - echo "📁 当前目录: $(pwd)"
-    - echo "📦 列出 apps/in-pages 内容:"
-    - ls -la apps/in-pages/
-    - echo "📄 apps/in-pages/package.json:"
-    - cat apps/in-pages/package.json
-    - echo "🔍 检查 pnpm workspace:"
-    - pnpm list -r --depth 0 --json | grep '"name": "in-pages"' || echo "Workspace 'in-pages' not found"
-    - echo "--- ⛏️ 开始构建 in-pages ---"
-    - pnpm build --filter=in-pages
+    - pnpm build --filter=in-pages          # 生成 apps/in-pages/dist
   artifacts:
     paths:
-      - apps/in-pages/dist  # 保存构建产物
+      - apps/in-pages/dist                  # 产物供部署阶段使用
     expire_in: 1 hour
 
-deploy:pages:
+# --------------------------------------------------
+# 🚀 部署到 Cloudflare Pages
+# --------------------------------------------------
+deploy_pages:
   stage: deploy
-  needs: ["build:frontend"]  # 明确依赖 build 阶段
-  script:
-    - pnpm dlx wrangler pages deploy apps/in-pages/dist --project-name=in-pages --commit-hash=$CI_COMMIT_SHA --commit-message="$CI_COMMIT_MESSAGE"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  needs:
+    - job: build_frontend                   # 依赖构建产物
+      artifacts: true
+  script: >
+    pnpm dlx wrangler pages deploy apps/in-pages/dist
+    --project-name=in-pages
+    --commit-hash=$CI_COMMIT_SHA
+    --commit-message="$CI_COMMIT_MESSAGE"
   environment:
     name: production
-  only:
-    - main  # 仅主分支部署
