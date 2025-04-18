@@ -5,7 +5,7 @@ stages:
   - deploy
 
 # --------------------------------------------------
-# 🌐 全局设置
+# 🌐 全局配置
 # --------------------------------------------------
 default:
   image: node:20
@@ -15,7 +15,7 @@ default:
     - pnpm install
 
 # --------------------------------------------------
-# 🧹 代码质量
+# 🧹 Lint
 # --------------------------------------------------
 lint:
   stage: lint
@@ -31,16 +31,17 @@ unit_tests:
     - pnpm test
 
 # --------------------------------------------------
-# 🔐 Gitleaks 安全扫描
+# 🔐 Gitleaks 扫描
 # --------------------------------------------------
 gitleaks_scan:
   stage: test
-  image: zricethezav/gitleaks:latest
-  entrypoint: [""]
-  before_script: []          # 不继承 Node 的 before_script
+  image:
+    name: zricethezav/gitleaks:latest   # ✅ 用映射写法
+    entrypoint: [""]                   # ✅ 放在 image: 内部
+  before_script: []                    # 不继承 Node before_script
   script:
-    - gitleaks detect --source=. --report-format sarif \
-        --report-path gitleaks-report.sarif --verbose --redact
+    - gitleaks detect --source=. --verbose --redact \
+        --report-format sarif --report-path gitleaks-report.sarif
   artifacts:
     paths:
       - gitleaks-report.sarif
@@ -48,17 +49,17 @@ gitleaks_scan:
   allow_failure: false
 
 # --------------------------------------------------
-# 🛠️  构建前端 (仅 main 分支)
+# 🛠️ 构建前端
 # --------------------------------------------------
 build_frontend:
   stage: build
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main"'          # 仅 main 分支构建
   script:
-    - pnpm build --filter=in-pages          # 生成 apps/in-pages/dist
+    - pnpm build --filter=in-pages               # 生成 apps/in-pages/dist
   artifacts:
     paths:
-      - apps/in-pages/dist                  # 产物供部署阶段使用
+      - apps/in-pages/dist
     expire_in: 1 hour
 
 # --------------------------------------------------
@@ -67,9 +68,9 @@ build_frontend:
 deploy_pages:
   stage: deploy
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main"'          # 仅 main 分支部署
   needs:
-    - job: build_frontend                   # 依赖构建产物
+    - job: build_frontend                       # 依赖构建产物
       artifacts: true
   script: >
     pnpm dlx wrangler pages deploy apps/in-pages/dist
