@@ -5,23 +5,28 @@
 
 ---
 
-## [Unreleased]
+## [Unreleased] – 2025-04-22 更新
 
 ### ✨ 新增
-- 完成 `packages/shared` 中核心共享库 `logger.ts`, `trace.ts`, `auth.ts` 的实现。
-- 成功配置并验证 `apps/in-pages` 前端应用的完整 CI/CD 流程 (Lint → Test → Build → Deploy)。
-- 采用 ESLint Flat Config (`eslint.config.mjs`) 并配置 Cloudflare 全局变量。
+- 设计并记录“混合事件驱动架构”主链与副作用逻辑分离方案。
+- 补充一批现代工程文档：`architecture-summary-*`, `project-overview-*`, `phased-implementation-*`, `frontend-pages-map-*`, `event-schema-spec-*`, `shared-libs-overview-*`, `ci-structure-*` 等。
+- 确立 MVP 收敛目标：向量搜索、状态展示、DLQ 自动重试、事件日志增强 Worker。
+- 启用新架构版本下完整的资源命名清单与 Terraform 注册方式。
 
 ### 🛠 改进
-- 最终确认前端部署方案为 Cloudflare Pages 产品。
-- 解决了先前遇到的 Terraform plan 状态读取/认证阻塞问题 (具体原因待查)。
-- 完善 Secrets 同步脚本 (`sync-*.sh`)，确保与 GitLab CI/CD 及 Cloudflare Secrets Store 同步流程。
+- 重写 `README.md`，明确项目目标为现代 Serverless 架构实验平台，由生成式人工智能协助完成。
+- 删除插件系统、蓝绿部署与多租户架构相关描述，聚焦单人实验性目标。
+- 调整 Worker 职责与模块划分，简化后端执行链条逻辑。
+- 更新所有文档以符合命名规范、更新时间戳和模块一致性。
+- 明确前端页面为最多三页（任务发起、任务状态、图片搜索），并保留 SSR 兼容性设计。
 
 ### 🐛 修复
-- 识别并配置 Vitest (`vitest.config.ts` 中 `ssr.noExternal`) 以解决 `nanoid` 在测试中报错的问题。
+- 修复旧有 `.env.secrets` 同步脚本对空值变量处理不一致的问题。
+- 修复 `apps/in-pages` 中 CI/CD 构建脚本路径错误，现已匹配新版目录结构。
 
 ### 🗑️ 删除
-- 从 `apps/in-pages` 项目中移除了不再需要的 `worker.ts` 文件。
+- 移除旧版 Roadmap 草案中关于插件生命周期系统与多租户结构的描述。
+- 删除不再使用的文档文件：`infra-resources.md`, `infra-resources-detailed.md`, `project-handbook.md` 等。
 
 ---
 
@@ -53,12 +58,14 @@
 
 ---
 
-## 🧭 Roadmap 草案
+## ✅ 当前收敛路线图（Roadmap）
 
-- [ ] 实现核心任务管线完整业务逻辑（Download → Metadata → AI）。
-- [ ] 接入 Canary 流程与 Rollback 策略。
-- [ ] 插件生命周期系统（onTaskCreate, onMetadataExtracted）。
-- [ ] 多租户结构与权限系统设计。
-- [ ] Zero Trust 安全机制（Cloudflare Access）。
-- [ ] SLA / SLO 指标与告警体系。
-- [ ] 引入 Chaos Worker 模拟异常恢复机制。
+- [x] 架构定型与资源注册命名完成
+- [x] 前端页面结构设计（最多 3 页）
+- [x] 项目目标文档与技术说明完善
+- [ ] 实现核心任务链 Download → Metadata → AI
+- [ ] 完成状态协调 DO 与前端任务展示对接
+- [ ] 接入 Vectorize 向量索引接口与搜索逻辑
+- [ ] 实现 DLQ 自动重试机制
+- [ ] 构建事件驱动日志增强订阅者 Worker
+- [ ] 打通 Logpush → Axiom 的仪表盘指标流
