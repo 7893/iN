@@ -1,66 +1,87 @@
-# 🚀 iN 项目简介  
-📄 更新时间：2025-04-22  
+# 🚀 iN Project – Intelligent Image Infrastructure on Cloudflare
+
+> 构建于 Cloudflare 的现代智能图像处理系统  
+> 聚焦 Serverless 架构、事件驱动模型、Durable Object 状态管理与可观测性实践
 
 ---
 
 ## 🎯 项目定位
 
-**iN 是一套专注于现代软件工程实践与架构范式探索的实验性系统。**  
-它的目标并非产品功能复杂或商业化应用，而是通过构建一个完整的图片处理平台，  
-全面验证当代分布式系统的工程方法与架构理念。
+本项目为 **个人主导的现代软件工程范式实践项目**，聚焦探索并落地以下关键能力：
+
+- 云原生 Serverless 架构（Cloudflare 全家桶）
+- 分布式异步任务流与事件驱动解耦
+- Durable Object 状态协调机制
+- 全链路结构化日志与可观测性构建
+- 基础设施即代码（Terraform）与自动化 CI/CD 实践
+
+👉 项目目标 **不是商业化产品**，而是对“现代架构 + 工程能力”的一次 **系统性演练**。
 
 ---
 
-## 🧠 核心工程实践亮点
+## 📦 技术架构概览
 
-本项目结合了现代工程设计理念，并借助生成式人工智能进行协同完成，具体包括：
-
-- ✅ **模块边界清晰**：系统通过多 Worker 拆分实现微服务式架构，职责明确、逻辑清晰  
-- ✅ **事件驱动结构**：主流程与副作用完全解耦，任务通过事件与队列驱动，响应迅速  
-- ✅ **异步状态管理**：使用 Durable Object 构建状态机，保证流程一致性与可追踪性  
-- ✅ **幂等性与稳定性保障**：所有处理流程均具备幂等机制，应对网络或消息重试场景  
-- ✅ **基础设施即代码 (IaC)**：通过 Terraform 管理所有资源，实现架构即文档、即版本  
-- ✅ **日志与可观测性**：结构化日志 + Trace ID + Axiom 集成，支持端到端追踪与审计  
-- ✅ **安全机制清晰可控**：采用分层认证方案，核心接口通过 JWT/HMAC 校验，边缘配置独立  
-- ✅ **标准化工程体系**：从命名、目录结构、CI/CD 到测试策略，统一规范与版本化文档支撑  
-- ✅ **三云协作实践**：合理融合 Cloudflare / Firebase / Vercel 各自优势，体现平台间协作范式  
-- 🤖 **AI 辅助工程生成**：本项目的大部分文档、代码骨架、结构规划均由 ChatGPT 与 Gemini 等生成式 AI 共同参与设计与编写
+| 层级 | 技术组件 | 说明 |
+|------|------------|------|
+| **前端** | Vercel + Cloudflare Pages | 托管配置与展示页面 |
+| **接口层** | Cloudflare Workers | API 网关、配置、查询等 |
+| **主处理链** | Durable Object + Queues + Workers | 下载 → 元数据 → AI 向量 |
+| **存储** | R2（图片）、D1（结构化数据）、Vectorize（向量） | 多模态数据存储 |
+| **认证** | Firebase Auth | 用户身份验证与访问控制 |
+| **可观测性** | Logpush + Axiom + TraceId | 日志、追踪与告警机制 |
+| **IaC 与部署** | Terraform + GitLab CI | 所有资源与部署流程基础设施化管理 |
 
 ---
 
-## 📦 项目结构概览（Monorepo）
+## 🔨 当前 MVP 范围
 
-- `apps/`：所有 Cloudflare Workers、前端项目、DO 实现
-- `packages/`：Worker 拆分逻辑包与共享库（日志、追踪、状态管理等）
-- `infra/`：Terraform 定义的所有资源与输出
-- `tools/`：辅助脚本（环境变量同步、敏感清理等）
-- `docs/`：全版本文档（架构、测试、流程、规范）
-
----
-
-## 📌 当前阶段进展
-
-- 架构与基础设施全部准备就绪  
-- 工程规范全面建立（日志、CI、测试、资源命名等）  
-- 所有 Worker、状态流、核心逻辑骨架均已划分完成  
-- 正在推进任务链路逻辑实现与前端页面集成  
+- ✅ 原图上传与采集任务发起  
+- ✅ 下载 → 元数据提取 → AI 向量处理 三段式处理链  
+- ✅ 向量存储 + 基本查询 API  
+- ✅ 配置 UI（Vercel 前端）与状态展示接口联调  
+- ✅ Logpush + Axiom 可观测性打通
 
 ---
 
-## 📘 推荐阅读文档
+## 🧠 项目亮点
 
-- `architecture-summary-*.md`：整体结构解析  
-- `project-overview-*.md`：目标与理念说明  
-- `phased-implementation-*.md`：实施路径规划  
-- `mvp-manifest-*.md`：最小可行系统定义  
-- `logpush-axiom-guide-*.md`：日志链路与追踪规范  
-- `three-tier-decision-notes-*.md`：平台选型与分工决策记录  
+- 🌍 三元架构（CF 主干，VC 展示，FB 辅助）简明高效
+- ⚙️ Durable Object 状态协调驱动任务流程稳定演进
+- ✨ 所有代码、文档均由 **生成式人工智能（ChatGPT, Gemini, Grok）协作完成**
+- 📚 全套工程文档位于 [`/docs/`](./docs) 目录，覆盖从命名规范到测试策略
 
 ---
 
-## 🧾 总结
+## 📁 仓库结构简览
 
-> iN 是一个以工程设计为中心构建的实践型系统，  
-> 在结构清晰、流程标准、可观测性、可维护性方面全面对标现代范式。  
-> 它由人类与生成式人工智能协作完成，代表了一种新的工程创造方式。
+```
+├── apps/              # 所有前端 + Worker 应用
+├── packages/          # 共享库与逻辑封装
+├── infra/             # Terraform 定义与资源输出
+├── tools/             # 密钥同步与清理脚本
+├── docs/              # 架构与工程文档全集
+├── README.md
+└── turbo.json         # Turborepo 构建策略
+```
 
+---
+
+## 🔗 开发指南
+
+```bash
+# 克隆并安装依赖
+git clone <repo-url>
+cd in
+pnpm install
+
+# 启动本地 Worker 进行开发调试
+cd apps/iN-worker-d-download-20250402
+wrangler dev
+```
+
+> 如需完整开发计划，请参见 [`docs/phased-implementation-*.md`](./docs/phased-implementation-20250422.md)
+
+---
+
+🕒 更新时间：2025-04-22  
+✍️ 全部由 AI（ChatGPT, Gemini, Grok）协作生成并持续完善

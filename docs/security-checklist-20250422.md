@@ -1,47 +1,24 @@
-# 🛡️ iN 安全检查清单  
-📄 文档名称：security-checklist-20250422.md  
-🗓️ 更新时间：2025-04-22  
+# ✅ security-checklist-20250422.md
+
+## 🔐 基础安全措施清单
+
+- [x] 所有密钥通过 `.env.secrets` 管理，使用 Secrets Store 同步到平台
+- [x] 所有 API 均添加身份认证机制（Firebase Auth 或 JWT/HMAC）
+- [x] 所有输入参数通过 Zod 进行输入验证
+- [x] Git 历史已清理敏感信息，CI 集成 Gitleaks
+- [x] 日志中不输出原始 secret 内容
+- [x] 所有日志均附带 traceId，支持链路追踪
+- [x] 日志结构化，使用 JSON 格式，推送至 Axiom
+- [x] 队列消费严格幂等，避免重复副作用
+- [x] Queue 消费失败进入 DLQ，主链不阻塞
+- [x] Durable Object 状态更新不可越权
+
+## 🆕 新增项
+
+- [x] DLQ 记录不得包含原始用户敏感数据（如原图路径、用户 ID）
+- [x] 所有 traceId 日志中应去除 secret 字段，仅保留任务与流程状态
 
 ---
 
-## ✅ 云平台级
-
-- [x] Cloudflare Secrets Store 配置并生效  
-- [x] 所有 Worker 均已绑定密钥，不暴露在源码中  
-- [x] Durable Object 实现访问权限受限  
-- [x] 所有对外接口添加身份校验（HMAC or Firebase Auth）  
-- [x] 日志中不打印敏感数据（如 token、secret）  
-
----
-
-## ✅ Firebase 安全
-
-- [x] Firestore 安全规则：用户只能访问自己的配置  
-- [x] ID Token 验证已集成到 `auth.ts`  
-- [x] 不启用 Firebase Functions，确保系统边界清晰  
-- [x] 未开启匿名登录 / 手机号登录等不安全通道  
-
----
-
-## ✅ Vercel 安全
-
-- [x] 环境变量仅通过 ENV 注入，不在前端明文保存  
-- [x] 使用 `.env` 区分 PUBLIC_ 和私有变量  
-- [x] 所有部署仅允许绑定 GitLab 项目（防止 fork 篡改）  
-
----
-
-## ✅ 接口与输入安全
-
-- [x] 所有 API 使用 Zod 或 Schema 校验输入参数  
-- [x] 所有 Queue 消费实现幂等处理逻辑  
-- [x] 所有任务状态变更使用 DO 封装函数处理  
-- [x] 所有 Queue 有 DLQ 绑定或失败报警机制  
-
----
-
-## ✅ 日志与可观测性
-
-- [x] TraceId 已实现并全链路传递  
-- [x] 所有 Worker 使用结构化日志（JSON 格式）  
-- [x] 已接入 Axiom 日志系统（或计划接入）  
+文档名：security-checklist-20250422.md  
+更新日期：2025-04-22
