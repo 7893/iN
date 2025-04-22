@@ -1,87 +1,95 @@
 # 🚀 iN Project – Intelligent Image Infrastructure on Cloudflare
 
-> 构建于 Cloudflare 的现代智能图像处理系统  
-> 聚焦 Serverless 架构、事件驱动模型、Durable Object 状态管理与可观测性实践
+> 一套以现代架构范式为核心构建的智能图像处理系统  
+> 聚焦 Serverless、事件驱动、分布式状态协调与可观测性全链路落地
 
 ---
 
 ## 🎯 项目定位
 
-本项目为 **个人主导的现代软件工程范式实践项目**，聚焦探索并落地以下关键能力：
+**iN 是一个面向现代软件工程实践的全栈架构范例**，通过实际构建智能图像处理平台，系统性演示以下范式落地：
 
-- 云原生 Serverless 架构（Cloudflare 全家桶）
-- 分布式异步任务流与事件驱动解耦
-- Durable Object 状态协调机制
-- 全链路结构化日志与可观测性构建
-- 基础设施即代码（Terraform）与自动化 CI/CD 实践
+- ☁️ Serverless 全家桶设计（Cloudflare 为主）
+- 📩 事件驱动 + 消息队列主链协调机制
+- 🧠 Durable Object 分布式状态管理
+- 📊 全链路结构化日志 + Logpush 可观测性接入
+- 🔐 零信任安全 + 密钥隔离管理
+- 🛠️ 基础设施即代码（IaC） + 自动化 CI/CD 流程
 
-👉 项目目标 **不是商业化产品**，而是对“现代架构 + 工程能力”的一次 **系统性演练**。
+所有架构设计、文档与核心代码均由 **生成式人工智能** （ChatGPT-4o、Gemini Pro 2.5、Grok 3）协同产出，代表当下 AI 辅助工程的前沿实践路径。
 
 ---
 
-## 📦 技术架构概览
+## 🧱 核心技术栈概览
 
-| 层级 | 技术组件 | 说明 |
+| 层级 | 技术选型 | 说明 |
 |------|------------|------|
-| **前端** | Vercel + Cloudflare Pages | 托管配置与展示页面 |
-| **接口层** | Cloudflare Workers | API 网关、配置、查询等 |
-| **主处理链** | Durable Object + Queues + Workers | 下载 → 元数据 → AI 向量 |
-| **存储** | R2（图片）、D1（结构化数据）、Vectorize（向量） | 多模态数据存储 |
-| **认证** | Firebase Auth | 用户身份验证与访问控制 |
-| **可观测性** | Logpush + Axiom + TraceId | 日志、追踪与告警机制 |
-| **IaC 与部署** | Terraform + GitLab CI | 所有资源与部署流程基础设施化管理 |
+| 前端展示 | Vercel + Cloudflare Pages | 配置与图片状态 UI |
+| API 接口 | Cloudflare Workers | 网关、配置、查询、检索接口 |
+| 主任务链 | Queue + Durable Object + Worker | 下载 → 元数据提取 → AI 向量生成 |
+| 存储体系 | R2 / D1 / Vectorize | 原图 + 结构化数据 + 向量索引 |
+| 用户认证 | Firebase Auth | 用户级访问控制 |
+| 可观测性 | Axiom + TraceId + JSON Log | 实现日志追踪与故障定位 |
+| 基础设施管理 | Terraform + GitLab CI | 所有资源与部署全自动化 |
 
 ---
 
-## 🔨 当前 MVP 范围
+## ✅ 已实现工程亮点
 
-- ✅ 原图上传与采集任务发起  
-- ✅ 下载 → 元数据提取 → AI 向量处理 三段式处理链  
-- ✅ 向量存储 + 基本查询 API  
-- ✅ 配置 UI（Vercel 前端）与状态展示接口联调  
-- ✅ Logpush + Axiom 可观测性打通
-
----
-
-## 🧠 项目亮点
-
-- 🌍 三元架构（CF 主干，VC 展示，FB 辅助）简明高效
-- ⚙️ Durable Object 状态协调驱动任务流程稳定演进
-- ✨ 所有代码、文档均由 **生成式人工智能（ChatGPT, Gemini, Grok）协作完成**
-- 📚 全套工程文档位于 [`/docs/`](./docs) 目录，覆盖从命名规范到测试策略
+- **架构模块划分清晰、职责分离明确**
+- **任务流程通过 Durable Object 实现强一致状态控制**
+- **队列驱动的事件分发解耦主流程与副作用**
+- **TraceID + Logpush 构建可审计日志流**
+- **Worker 幂等性强制约束提升系统稳定性**
+- **文档完整、命名规范、CI/CD 流程清晰可复用**
+- **平台解耦设计，三元组合部署灵活（VC + FB + CF）**
 
 ---
 
-## 📁 仓库结构简览
+## 🧪 MVP 范围
+
+- 图片任务配置与采集触发  
+- 下载 → 元数据提取 → AI 向量链路闭环  
+- 原图 + 数据存储 + 向量检索接口  
+- 可视化状态展示页面（Vercel）  
+- DLQ 自动检测与日志增强事件订阅者（计划中）
+
+---
+
+## 📁 仓库结构概览
 
 ```
 ├── apps/              # 所有前端 + Worker 应用
-├── packages/          # 共享库与逻辑封装
-├── infra/             # Terraform 定义与资源输出
-├── tools/             # 密钥同步与清理脚本
-├── docs/              # 架构与工程文档全集
-├── README.md
-└── turbo.json         # Turborepo 构建策略
+├── packages/          # 共享库（日志、追踪、认证、事件）
+├── infra/             # Terraform 定义与输出
+├── docs/              # 架构说明、命名规范、安全策略等工程文档
+├── tools/             # 密钥同步、清理与辅助脚本
+└── README.md
 ```
 
 ---
 
-## 🔗 开发指南
+## 🧠 架构指导原则
 
-```bash
-# 克隆并安装依赖
-git clone <repo-url>
-cd in
-pnpm install
-
-# 启动本地 Worker 进行开发调试
-cd apps/iN-worker-d-download-20250402
-wrangler dev
-```
-
-> 如需完整开发计划，请参见 [`docs/phased-implementation-*.md`](./docs/phased-implementation-20250422.md)
+- **主流程同步控制、旁路异步广播**
+- **事件即事实、不可逆但可重放**
+- **状态统一落点、任务逻辑幂等**
+- **基础设施即代码、部署即定义**
+- **日志可结构化追踪、事件可插拔处理**
 
 ---
 
-🕒 更新时间：2025-04-22  
-✍️ 全部由 AI（ChatGPT, Gemini, Grok）协作生成并持续完善
+## 🧭 推荐阅读
+
+项目完整文档体系请见 [`/docs`](./docs)，推荐起步：
+
+- `architecture-summary-*.md` 架构总览与模块责任划分
+- `phased-implementation-*.md` 分阶段开发路径指引
+- `secure-practices-*.md` 安全机制实践指南
+- `testing-guidelines-*.md` 当前测试现状与补充建议
+- `action-checklist-*.md` 当前开发重点任务追踪
+
+---
+
+📅 文档更新日期：2025-04-22  
+📌 本项目设计、代码与文档全部由生成式人工智能（ChatGPT-4o, Gemini Pro 2.5, Grok 3）协作完成。
