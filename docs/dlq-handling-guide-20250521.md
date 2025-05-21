@@ -1,15 +1,14 @@
 # ☑️ GCP Pub/Sub 死信主题 (Dead-Letter Topic) 处理指南 (架构版本 2025年5月21日)
 
 ## 🧩 背景
-
 在基于 Google Cloud Pub/Sub 的异步消息驱动架构中，当订阅者（例如 GCP Cloud Function/Run 服务）多次尝试处理某条消息失败后，为了避免消息丢失并阻塞主处理流程，Pub/Sub 允许将这些无法成功处理的消息转发到一个指定的“死信主题”(Dead-Letter Topic, DLT)。本指南旨在设计 iN 项目中 DLT 消息的处理机制。
 
 ## ✅ 核心机制与 GCP Pub/Sub 死信特性
 
 1.  **配置死信策略**:
-    * 为项目中的每个核心 Pub/Sub 订阅（例如，`in-pubsub-sub-download-trigger`, `in-pubsub-sub-metadata-trigger` 等）配置一个死信策略。
+    * 为项目中的每个核心 Pub/Sub 订阅（例如，`in-ps-sub-download-trigger-prod`, `in-ps-sub-metadata-trigger-prod` 等）配置一个死信策略。
     * 策略中定义：
-        * **死信主题 (DLT)**: 一个专门用于接收死信的 Pub/Sub 主题 (例如 `in-pubsub-dlt-download-requests`)。
+        * **死信主题 (DLT)**: 一个专门用于接收死信的 Pub/Sub 主题 (例如 `in-ps-dlt-download-requests-prod`)。
         * **最大投递尝试次数**: 原始订阅在将消息发送到 DLT 之前尝试投递给订阅者的最大次数 (例如 5 到 10 次)。
 
 2.  **死信主题 (DLT) 的订阅与处理**:
@@ -28,7 +27,7 @@
 
 1.  **启用并配置 DLT**: 为所有关键业务流程的 Pub/Sub 订阅配置好指向相应 DLTs 的死信策略。
 2.  **统一死信日志记录**:
-    * 创建一个专用的 Cloud Function (`in-function-dlt-logger`)。
+    * 创建一个专用的 Cloud Function (`gcp-func-dlt-logger`)。
     * 此 Function 订阅所有项目的 DLTs (可以使用一个通配符订阅，或分别为每个 DLT 创建订阅并指向同一个 Function)。
     * 当接收到死信时，该 Function 将消息的关键信息（脱敏后）结构化地记录到 Google Cloud Logging。
 3.  **GCP Monitoring 告警**:
@@ -47,4 +46,4 @@
 
 ---
 文件名：dlq-handling-guide-20250521.md (原 dlq-handling-guide-20250422.md)
-生成时间：20250521 (根据实际更新时间调整)
+更新日期: 2025年5月21日 23:01 (CST)

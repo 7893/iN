@@ -1,22 +1,31 @@
 # ========================
-# 📦 Node.js / Build
+# 📦 Node.js / Build / Output
 # ========================
-
 **/node_modules/
 **/dist/
 **/build/
-
-# ✅ 保留 Cloudflare Pages 构建产物
-!apps/in-pages/dist/
-!apps/in-pages/dist/**/*
+**/coverage/
+**/.output/ # Common for some frameworks
+**/.vercel/ # Vercel build output
+**/.next/ # Next.js build output
+**/.nuxt/ # Nuxt.js build output
+**/.svelte-kit/ # SvelteKit build output
 
 # ========================
 # 🛠 工具 & 缓存
 # ========================
-
 .turbo/
-.pnpm-debug.log
 *.log
+.pnpm-debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+pids
+*.pid
+*.seed
+*.pid.lock
 
 # Wrangler 本地配置
 **/.wrangler/
@@ -24,25 +33,130 @@
 # ========================
 # 🖥 系统 & 编辑器
 # ========================
-
 .DS_Store
-.vscode/
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.sublime-workspace
+*.sublime-project
 .idea/
+!.idea/misc.xml
+!.idea/modules.xml
+!.idea/vcs.xml
+!.idea/workspace.xml
+nbproject/
+*.tmproj
+*.bak
+*.tmp
 *.swp
+*~
 
 # ========================
-# 🔐 Secrets / Env
+# 🔐 Secrets / Env / Config
 # ========================
+# Ignore all .env files to prevent accidental committal of secrets
+*.env
+.env.*
+!.env.example # It's okay to commit example env files
 
+# Explicitly ignore specific sensitive env files if named differently
 .env.secrets
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # ========================
 # ☁️ Terraform
 # ========================
-
+# Local .terraform directories
 **/.terraform/
-**/*.tfstate*
-infra/*.tfstate*
-infra/terraform.tfvars
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# .tfvars files
+# It's better to use environment variables for sensitive Terraform variables (TF_VAR_name)
+# or a .tfvars file that is NOT committed.
+*.tfvars
+*.tfvars.json
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Ignore override files as they are usually environment specific
+*.override.tf
+*.override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# ========================
+# 💎 Ruby / Jekyll (If applicable, e.g., for docs served by Jekyll locally)
+# ========================
+# .sass-cache/
+# .jekyll-cache/
+# .jekyll-metadata
+# _site/
+
+# ========================
+# 🐍 Python (If applicable)
+# ========================
+# __pycache__/
+# *.py[cod]
+# .pytest_cache/
+# .Python
+# build/
+# develop-eggs/
+# dist/
+# downloads/
+# eggs/
+# .eggs/
+# lib/
+# lib64/
+# parts/
+# sdist/
+# var/
+# wheels/
+# *.egg-info/
+# .installed.cfg
+# *.egg
+# MANIFEST
+# .env/
+# .venv/
+# env/
+# venv/
+
+# ========================
+# ⚙️ GCP / Firebase specific (local emulators, etc.)
+# ========================
+# firebase-debug.log
+# firebase-debug.*.log
+# .firebase/
+# firestore-debug.log
+# firestore-debug.*.log
+# pubsub-debug.log
+# pubsub-debug.*.log
+# datastore-debug.log
+# datastore-debug.*.log
+# default_config.json (Functions Emulator)
+# GAE_RELEASE (App Engine)
+
+# ========================
+# 脚本 & 工具产物
+# ========================
+# *.zip
+# *.tar.gz
+# *.rar
