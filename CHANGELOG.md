@@ -1,71 +1,64 @@
-# 📜 CHANGELOG
+# 更新日志
 
-> 所有重要变更、迭代内容与架构决策将记录于此。  
-> 遵循 [Keep a Changelog](https://keepachangelog.com/) 规范，结合实际项目演进。
+所有本项目的重要变更将在此文件中记录。
 
----
+格式基于 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)，
+且本项目遵循 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)。
 
-## [Unreleased] – 2025-04-22 更新
-
-### ✨ 新增
-- 设计并记录“混合事件驱动架构”主链与副作用逻辑分离方案。
-- 补充一批现代工程文档：`architecture-summary-*`, `project-overview-*`, `phased-implementation-*`, `frontend-pages-map-*`, `event-schema-spec-*`, `shared-libs-overview-*`, `ci-structure-*` 等。
-- 确立 MVP 收敛目标：向量搜索、状态展示、DLQ 自动重试、事件日志增强 Worker。
-- 启用新架构版本下完整的资源命名清单与 Terraform 注册方式。
-
-### 🛠 改进
-- 重写 `README.md`，明确项目目标为现代 Serverless 架构实验平台，由生成式人工智能协助完成。
-- 删除插件系统、蓝绿部署与多租户架构相关描述，聚焦单人实验性目标。
-- 调整 Worker 职责与模块划分，简化后端执行链条逻辑。
-- 更新所有文档以符合命名规范、更新时间戳和模块一致性。
-- 明确前端页面为最多三页（任务发起、任务状态、图片搜索），并保留 SSR 兼容性设计。
-
-### 🐛 修复
-- 修复旧有 `.env.secrets` 同步脚本对空值变量处理不一致的问题。
-- 修复 `apps/in-pages` 中 CI/CD 构建脚本路径错误，现已匹配新版目录结构。
-
-### 🗑️ 删除
-- 移除旧版 Roadmap 草案中关于插件生命周期系统与多租户结构的描述。
-- 删除不再使用的文档文件：`infra-resources.md`, `infra-resources-detailed.md`, `project-handbook.md` 等。
+## [未发布]
 
 ---
 
-## [2025-04-18] - 项目结构与架构定型 ✅
+## [0.1.0-alpha.20250521] - 2025-05-21
 
-### 📌 关键里程碑
-- 架构定稿：异步队列 + DO 状态协调 + 结构化日志链路。
-- Worker 组件完整命名落地（11 个 Workers + 6 个 Queues + 1 DO）。
-- 前端 Pages 部署路径规范化。
-- 所有基础配置（ESLint、tsconfig、CI、Secrets）初始化完成。
-- 日志链路通过 Axiom Logpush 完成验证。
+### 新增 (Added)
+- **多云架构确立**: 正式采纳 "架构版本 2025年5月21日"。
+    - 前端托管平台确定为 **Vercel**。
+    - 边缘层、API网关、状态协调和部分边缘存储由 **Cloudflare** (Workers, Durable Objects, R2, D1, Vectorize) 承担。
+    - 核心后端服务（计算、消息队列、认证、核心数据库、日志监控）迁移至 **Google Cloud Platform (GCP)**，并优先利用其永久免费资源 (Identity Platform, Pub/Sub, Cloud Functions/Run, Firestore/Datastore, Cloud Logging & Monitoring)。
+    - 代码托管和 CI/CD 平台统一为 **GitHub** 和 **GitHub Actions**。
+- **GCP 服务集成规划**:
+    - **GCP Identity Platform (GCIP)**: 用于用户认证。
+    - **GCP Pub/Sub**: 作为核心异步消息队列。
+    - **GCP Cloud Functions / Cloud Run**: 执行主要的后端处理逻辑。
+    - **GCP Firestore (Native Mode) / Datastore**: 作为核心 NoSQL 数据存储。
+    - **GCP Cloud Logging & Monitoring**: 用于集中式日志和监控。
+- **文档体系**: 根据新架构大规模更新了项目系列设计文档。
+- **CI/CD 规划**: 制定了基于 GitHub Actions 的多平台（Vercel, Cloudflare, GCP）部署策略。
+- **IaC 规划**: 扩展 Terraform 配置以同时管理 Cloudflare 和 GCP 资源。
+
+### 变更 (Changed)
+- **重大架构调整**:
+    - 从先前主要基于 Cloudflare 的设想（或 Cloudflare + Firebase 的组合）**彻底转向 Vercel + Cloudflare + GCP 的多云架构**。
+    - **核心后端逻辑执行单元**: 部分原计划在 Cloudflare Workers 中执行的较重任务，调整为在 GCP Cloud Functions/Run 中执行，由 Pub/Sub 驱动。
+    - **用户认证机制**: 从原计划的 Firebase Authentication (或更早的 HMAC/JWT 方案) **变更为 GCP Identity Platform (GCIP)**。
+    - **消息队列机制**: 从原计划的 Cloudflare Queues (或基于 DO 的简化协调方案) **变更为 GCP Pub/Sub**。
+    - **日志监控方案**: 从原计划的 Axiom (或 Cloudflare 原生日志) **变更为 GCP Cloud Logging & Monitoring**。
+    - **前端实现方式**: 明确前端由 Vercel 托管。
+- **代码仓库与 CI/CD 平台**: 从原设想的 GitLab **迁移到 GitHub / GitHub Actions**。
+
+### 移除 (Removed)
+- **Firebase (作为独立服务商的直接依赖)**: 原计划由 Firebase 提供的认证和 Firestore 数据库功能，现由 GCP 内部对应的更通用服务 (GCIP, Firestore Native Mode/Datastore) 承担。
+- **Axiom (日志服务)**: 不再作为项目推荐的日志聚合与分析平台。
+- **Cloudflare Queues (作为核心任务队列)**: 在当前以最大化利用免费资源并获得完整队列功能的前提下，由 GCP Pub/Sub 替代。
+
+### 修复 (Fixed)
+- (此阶段主要为架构设计和规划，较少代码层面的修复)
+
+### 安全性 (Security)
+- **认证方案变更**: 明确采用 GCIP 作为用户认证核心，相关的安全考量已纳入新架构设计。
+- **密钥管理策略**: 强调跨平台（GitHub Actions Secrets, Vercel Environment Variables, Cloudflare Secrets, GCP Secret Manager）的密钥管理。
+
+### 注意事项 (Notes)
+- 本版本代表了一次重大的架构设计迭代，重点在于确立多云技术选型、最大化利用永久免费资源，并为后续的 MVP 开发奠定基础。
+- 大量的设计文档已根据此新架构进行了更新。
+- 接下来的主要工作是基于此架构进行详细的 IaC 编写和应用代码开发。
 
 ---
 
-## [2025-04-10] - Durable Object 初步实现
-
-- 成功部署 `in-do-a-task-coordinator` Namespace。
-- 实现 Task 状态更新封装库 `task.ts`。
-- 为所有任务消费 Worker 明确幂等性要求。
-
----
-
-## [2025-04-04] - 项目初始化
-
-- 创建 Monorepo 项目结构，集成 pnpm + Turborepo。
-- 初始化 Cloudflare Workers 架构骨架。
-- Terraform 成功管理 D1、Queues、Workers、Pages 外壳。
-- 引入基础 CI/CD 流程、项目规范配置（ESLint、tsconfig、vitest）。
-
----
-
-## ✅ 当前收敛路线图（Roadmap）
-
-- [x] 架构定型与资源注册命名完成
-- [x] 前端页面结构设计（最多 3 页）
-- [x] 项目目标文档与技术说明完善
-- [ ] 实现核心任务链 Download → Metadata → AI
-- [ ] 完成状态协调 DO 与前端任务展示对接
-- [ ] 接入 Vectorize 向量索引接口与搜索逻辑
-- [ ] 实现 DLQ 自动重试机制
-- [ ] 构建事件驱动日志增强订阅者 Worker
-- [ ] 打通 Logpush → Axiom 的仪表盘指标流
+## [0.0.1-alpha] - 2025-04-15 (历史版本参考)
+### 新增
+- 项目初始化，基于 Cloudflare Pages, Workers, Queues, D1, R2 的初步架构设计。
+- 核心处理流程（下载、元数据、AI）的概念验证。
+- 基础的 Terraform 配置管理 Cloudflare 资源。
+- 初版系列设计文档。

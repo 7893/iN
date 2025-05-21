@@ -1,0 +1,275 @@
+# .github/workflows/main-ci-cd.yml
+# 更新日期: 2025-05-21
+# 架构版本: 2025年5月21日 (Vercel 前端 + Cloudflare 边缘 + GCP核心后端 + GitHub CI/CD)
+
+name: Main CI/CD Pipeline (Vercel, Cloudflare, GCP)
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  lint-test-build:
+    name: Lint, Test & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8 # 请替换为你的 pnpm 版本
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20' # 请替换为你的 Node.js 版本
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint # 假设你的 lint 脚本是 'pnpm lint'
+
+      - name: Unit Tests
+        run: pnpm test # 假设你的单元测试脚本是 'pnpm test'
+
+      - name: Build all apps and packages
+        run: pnpm build # 假设你的构建脚本是 'pnpm build' (可能通过 Turborepo)
+
+      - name: Upload build artifacts (optional, if needed by other jobs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            apps/**/dist # 根据你的构建输出调整路径
+            apps/**/.output # Next.js/Nuxt.js on Vercel
+            apps/**/.vercel/output # Vercel output
+            packages/**/dist
+
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: lint-test-build # 依赖代码检查和构建（可选，看是否需要构建产物影响IaC）
+    if: github.event_name == 'pull_request' # 通常 Plan 只在 PR 时运行或需要审查
+    env:
+      # Cloudflare Secrets for Terraform Provider
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      # GCP Credentials for Terraform Provider
+      GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY_JSON_TERRAFORM }} # 用于Terraform的GCP服务账号密钥
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        # with:
+        #   terraform_version: "1.x.x" # 指定Terraform版本
+
+      - name: Terraform Init
+        working-directory: ./infra # 假设Terraform代码在 infra 目录
+        run: terraform init -backend-config="bucket=your-tfstate-gcs-bucket-name" # 配置远程后端
+
+      - name: Terraform Validate
+        working-directory: ./infra
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: ./infra
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        # continue-on-error: true # 如果希望PR中即使plan有错也继续，以便看到plan结果
+
+      # (可选) 如果希望将 plan 结果发布到 PR 评论
+      # - name: Comment Terraform Plan on PR
+      #   uses: actions/github-script@v6
+      #   if: github.event_name == 'pull_request'
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     script: |
+      #       const output = `#### Terraform Format and Style ������\`${{ steps.fmt.outcome }}\`
+      #       #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+      #       #### Terraform Validation ������\`${{ steps.validate.outcome }}\`
+      #       <details><summary>Validation Output</summary>
+
+      #       \`\`\`diff
+      #       ${{ steps.plan.outputs.stdout }}
+      #       \`\`\`
+
+      #       </details>
+
+      #       *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: output
+      #       })
+
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: [lint-test-build, terraform-plan] # 确保Plan在PR中已审查（如果流程如此设计）
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) # 合并到main或dev分支时执行
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY_JSON_TERRAFORM }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: ./infra
+        run: terraform init -backend-config="bucket=your-tfstate-gcs-bucket-name"
+
+      - name: Terraform Apply
+        working-directory: ./infra
+        run: terraform apply -auto-approve # 注意：自动批准有风险，确保plan已被审查
+
+  deploy-frontend-vercel:
+    name: Deploy Frontend to Vercel
+    runs-on: ubuntu-latest
+    needs: terraform-apply # 依赖基础设施部署完成
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Vercel通常会自动从仓库构建，但如果需要手动触发或传递构建产物
+      # - name: Download build artifacts (if frontend built in previous job)
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: build-artifacts
+      #     path: . # 下载到根目录，然后Vercel CLI可能需要指定路径
+
+      - name: Deploy to Vercel
+        # Vercel GitHub Integration 通常会自动处理 main/dev 分支的部署。
+        # 如果需要手动控制或传递特定参数，可以使用 Vercel CLI。
+        # 此处假设使用 Vercel 的 GitHub App 自动部署。
+        # 如果手动，类似：
+        # run: |
+        #   npm install -g vercel
+        #   vercel pull --yes --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+        #   vercel build --token=${{ secrets.VERCEL_TOKEN }} ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
+        #   vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
+        # working-directory: ./apps/vercel-frontend # 如果前端在子目录
+        run: echo "Vercel deployment is typically handled by Vercel's GitHub App integration."
+
+  deploy-cloudflare-services:
+    name: Deploy Cloudflare Services
+    runs-on: ubuntu-latest
+    needs: terraform-apply
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    env:
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      # 你可能还需要为不同的Worker定义不同的环境变量或Secrets
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 假设你需要构建Workers (例如，如果它们是TypeScript)
+      - name: Build Cloudflare Workers/DOs
+        run: pnpm turbo run build --filter="./apps/cf-*" # 假设所有Cloudflare应用以cf-开头
+
+      - name: Deploy API Gateway Worker
+        working-directory: ./apps/iN-worker-A-api-gateway-20250521 # 替换为你的Worker路径
+        run: npx wrangler deploy wrangler.toml --env ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }} # 假设wrangler.toml中定义了环境
+
+      - name: Deploy TaskCoordinatorDO
+        working-directory: ./apps/iN-do-A-task-coordinator-20250521 # 替换为你的DO路径
+        run: npx wrangler deploy wrangler.toml --env ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+      # 为其他 Cloudflare Workers/DOs 添加类似的部署步骤
+
+  deploy-gcp-services:
+    name: Deploy GCP Services (Functions/Run)
+    runs-on: ubuntu-latest
+    needs: terraform-apply
+    permissions: # For Workload Identity Federation (推荐)
+      contents: 'read'
+      id-token: 'write'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 使用 Workload Identity Federation (推荐)
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/${{ secrets.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ secrets.GCP_WIF_POOL_ID }}/providers/${{ secrets.GCP_WIF_PROVIDER_ID }}'
+          service_account: '${{ secrets.GCP_SA_EMAIL_FOR_DEPLOY }}' # 用于部署的服务账号邮箱
+
+      # 或者使用服务账号密钥 (不推荐用于生产，但作为备选)
+      # - id: 'auth-key'
+      #   name: 'Authenticate to Google Cloud via Key'
+      #   uses: 'google-github-actions/auth@v2'
+      #   with:
+      #     credentials_json: '${{ secrets.GCP_SA_KEY_JSON_DEPLOY }}'
+
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      # 示例：部署一个 GCP Cloud Function
+      - name: 'Deploy Download Function'
+        run: |-
+          cd ./apps/gcp-download-function # 假设函数代码在此目录
+          # pnpm install (如果每个GCP Function/Run有自己的package.json)
+          # pnpm build (如果需要编译TS到JS)
+          gcloud functions deploy in-function-download-image \
+            --gen2 \
+            --runtime nodejs20 \
+            --trigger-topic in-pubsub-topic-download-requests \
+            --entry-point yourDownloadFunctionEntryPoint \
+            --region ${{ secrets.GCP_REGION }} \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            --service-account ${{ secrets.GCP_FUNCTION_SA_EMAIL }} \
+            --source . # 指定源代码目录
+            # --env-vars-file .env.yaml (如果使用env文件配置环境变量)
+
+      # 为其他 GCP Cloud Functions 或 Cloud Run 服务添加类似的部署步骤
+      # 部署 Cloud Run 示例:
+      # - name: 'Deploy AI Processor Service to Cloud Run'
+      #   run: |-
+      #     cd ./apps/gcp-ai-processor-service
+      #     # gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/in-ai-processor:$GITHUB_SHA (如果使用Cloud Build构建容器)
+      #     gcloud run deploy in-service-ai-processor \
+      #       --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/in-ai-processor:$GITHUB_SHA \
+      #       --platform managed \
+      #       --region ${{ secrets.GCP_REGION }} \
+      #       --project ${{ secrets.GCP_PROJECT_ID }} \
+      #       --service-account ${{ secrets.GCP_RUN_SA_EMAIL }} \
+      #       --allow-unauthenticated # (如果需要公网访问，否则配置 Pub/Sub 推送订阅的调用者权限)
+      #       # --set-env-vars=...
+
+  # (可选) Post-Deployment Smoke Tests
+  # ...
+
+  # (可选) Notifications
+  # ...
