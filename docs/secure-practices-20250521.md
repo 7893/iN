@@ -1,11 +1,10 @@
-# 🔐 安全实践指南 (架构版本 2025年5月21日)
-📄 文档名称：secure-practices-20250521.md (原 secure-practices-20250422.md)
+# 🔐 安全实践指南与核对清单 (架构版本 2025年5月21日)
+📄 文档名称：secure-practices-20250521.md
 🗓️ 更新时间：2025-05-21
-
 ---
-本指南为 iN 项目在 Vercel, Cloudflare, Google Cloud Platform (GCP) 和 GitHub 上的开发、部署和运维提供核心安全实践建议。
+本指南为 iN 项目在 Vercel, Cloudflare, Google Cloud Platform (GCP) 和 GitHub 上的开发、部署和运维提供核心安全实践建议与核对清单。
 
-## 🛡️ 通用安全原则
+## 🛡️ 一、通用安全原则
 
 - **最小权限原则**: 所有用户账户、服务账号、API密钥都应只授予完成其任务所必需的最小权限。
 - **纵深防御**: 在多个层面实施安全措施（网络、应用、数据、身份）。
@@ -15,7 +14,7 @@
 
 ---
 
-## GITHUB"> GitHub 安全实践 (代码与CI/CD)
+## GITHUB"> 二、 GitHub 安全实践 (代码与CI/CD)
 
 - **代码仓库安全**:
     * 使用 GitHub 的分支保护规则保护 `main` 和 `dev` 分支，要求 PR 审查和 CI 通过。
@@ -29,7 +28,7 @@
 
 ---
 
-## 🎨 Vercel 安全实践 (前端)
+## 🎨 三、Vercel 安全实践 (前端)
 
 - **环境变量管理**:
     * 所有需要传递给前端应用的配置（如 API Gateway URL, GCIP 配置参数）通过 Vercel Environment Variables (Production, Preview, Development) 安全注入。
@@ -41,7 +40,7 @@
 
 ---
 
-## ☁️ Cloudflare 安全实践 (边缘与API网关)
+## ☁️ 四、Cloudflare 安全实践 (边缘与API网关)
 
 - **API Gateway Worker 安全**:
     * **输入验证**: 对所有入站 API 请求的参数和请求体使用 Zod 等库进行严格校验。
@@ -63,7 +62,7 @@
 
 ---
 
-## 🚀 Google Cloud Platform (GCP) 安全实践 (核心后端)
+## 🚀 五、Google Cloud Platform (GCP) 安全实践 (核心后端)
 
 - **Identity and Access Management (IAM)**:
     * **最小权限原则**: 为用户和服务账号 (Service Accounts) 授予完成其任务所需的最小 IAM 角色和权限。优先使用预定义角色，必要时创建自定义角色。
@@ -98,10 +97,78 @@
 
 ---
 
-## 🌍 多云环境通用安全
+## 🌍 六、多云环境通用安全
 
 - **TraceID**: 确保 TraceID 在 Vercel 前端、Cloudflare Worker 和 GCP 服务之间的调用链中正确传递，以便于安全事件的追踪和溯源。
 - **凭证管理**: 统一规划和审计所有平台（GitHub, Vercel, Cloudflare, GCP）的凭证、API密钥和访问令牌的生命周期管理。
 - **定期安全评估**: 定期对整个多云架构进行安全风险评估和渗透测试（如果适用）。
 
-遵循这些安全实践，有助于构建一个相对安全可靠的 iN 项目。
+---
+
+## ✅ 七、安全实践核对清单 (Security Checklist)
+本清单为 iN 项目的核心安全措施，应在项目各阶段（设计、开发、部署、运维）持续核对和落实。
+
+### 🔑 身份与访问管理 (IAM)
+- **[ ] 用户认证**:
+    - [ ] **GCP Identity Platform (GCIP)** 已配置并启用，用于用户注册和登录。
+    - [ ] 支持至少一种 OAuth 提供商 (如 Google, GitHub)。
+    - [ ] （可选）为 GCIP 用户启用多因素认证 (MFA)。
+- **[ ] 服务账号 (GCP & Cloudflare)**:
+    - [ ] 所有 GCP 服务使用具有最小权限的专用服务账号。
+    - [ ] Cloudflare Workers 访问 GCP 服务时，使用专用的 GCP 服务账号凭证。
+- **[ ] IAM 权限 (GCP & Cloudflare)**:
+    - [ ] 所有用户和服务账号均遵循最小权限原则。
+    - [ ] 定期审查 IAM 策略。
+- **[ ] API 认证**:
+    - [ ] Cloudflare API Gateway 强制验证所有入站请求的 GCIP ID Token。
+
+### 🔒 密钥与配置管理
+- **[ ] 敏感信息存储**:
+    - [ ] **严禁**在代码仓库中硬编码任何敏感凭证。
+    - [ ] 使用 GitHub Actions Secrets, Vercel Environment Variables, Cloudflare Secrets, GCP Secret Manager 管理对应平台的密钥。
+- **[ ] `.gitignore`**:
+    - [ ] `.gitignore` 文件已正确配置，屏蔽所有本地敏感文件。
+- **[ ] Git 历史扫描**:
+    - [ ] 已完成对 Git 历史的敏感信息扫描 (Gitleaks)。
+    - [ ] Gitleaks 或类似工具已集成到 GitHub Actions CI 流程。
+
+### 🛡️ 应用与服务安全
+- **[ ] 输入验证**:
+    - [ ] 所有外部输入（API, Pub/Sub消息）均使用 Zod 或类似库进行严格验证。
+- **[ ] 输出编码 (前端)**:
+    - [ ] Vercel 前端对动态内容进行适当 HTML 编码。
+- **[ ] CORS 配置**:
+    - [ ] Cloudflare API Gateway 配置严格的 CORS 策略。
+- **[ ] Cloudflare 安全特性**:
+    - [ ] （推荐）启用 WAF 规则集。
+    - [ ] （推荐）配置速率限制。
+- **[ ] GCP 服务安全配置**:
+    - [ ] Pub/Sub 主题/订阅 IAM 权限已配置。
+    - [ ] Cloud Functions/Run 服务账号权限最小化，入口受控。
+    - [ ] Firestore/Datastore 安全规则已配置。
+    - [ ] GCS 存储桶权限默认私有。
+- **[ ] 幂等性**:
+    - [ ] 所有 GCP Pub/Sub 消费者实现幂等性处理。
+- **[ ] Durable Object 安全**:
+    * [ ] `TaskCoordinatorDO` 状态更新接口不可被未授权外部直接调用。
+
+### 📦 依赖与基础设施安全
+- **[ ] 依赖项管理**:
+    - [ ] （推荐）使用 Dependabot 定期扫描并更新漏洞依赖。
+- **[ ] 基础设施即代码 (Terraform)**:
+    - [ ] Terraform 代码接受审查。
+    - [ ] Terraform 状态后端安全配置。
+
+### 📊 日志与监控
+- **[ ] 日志内容安全**:
+    - [ ] 所有服务日志输出均已脱敏。
+    - [ ] 日志中包含 `traceId` 和 `taskId`。
+- **[ ] 日志传输与存储**:
+    - [ ] 日志安全传输到 GCP Cloud Logging。
+- **[ ] 安全告警**:
+    - [ ] 在 GCP Monitoring 中配置关键安全事件告警。
+
+### 🔁 定期审查与流程
+- **[ ] 定期安全审计**: 计划定期进行安全审查。
+
+遵循这些安全实践和核对清单，有助于构建一个相对安全可靠的 iN 项目。

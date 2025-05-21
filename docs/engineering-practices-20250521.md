@@ -21,20 +21,37 @@
 
 ---
 
+## 🛠️ 开发与远程环境交互工具 (替代原本地开发策略)
+
+由于本项目采用远程部署进行开发和调试，本地主要进行编码和单元测试。与远程环境（开发/预览/Staging）的交互依赖以下核心工具：
+
+- **Vercel CLI**: 用于查看 Vercel 项目的远程部署状态、日志，以及触发部署（通常由 CI/CD 完成）。
+- **Wrangler CLI**: 用于与 Cloudflare 的 Workers, DO, R2, D1 等服务进行交互，例如查看日志、上传 Secrets、触发特定 Worker 的部署（通常由 CI/CD 完成）。
+- **Google Cloud SDK (`gcloud` CLI)**: 用于与 GCP 服务交互，例如查看 Cloud Functions/Run 的日志、Pub/Sub 主题/订阅状态、Firestore 数据（用于调试），以及手动触发部署或配置（通常由 CI/CD 完成）。
+- **Node.js & pnpm**: 项目主要的本地运行时（用于共享库测试、工具脚本执行）和包管理工具。
+- **Terraform CLI**: 本地规划 (`terraform plan`) 基础设施变更，实际应用 (`terraform apply`) 通常在 CI/CD 流程中执行。
+- **Vitest + tsx**: 本地执行单元测试和类型检查。
+- **Postman / Insomnia / curl**: 用于直接测试部署在远程开发/预览环境的 API 接口。
+- **Git & GitHub CLI (`gh`)**: 版本控制和与 GitHub 仓库的交互。
+
+*本地服务模拟器（如 GCP Emulators, Miniflare）在此策略下不作为主要的开发调试手段。*
+
+---
+
 ## 🧪 开发与测试流程
 
 - **本地开发环境**:
-    - **Vercel**: 使用 `vercel dev` 运行和调试前端应用。
-    - **Cloudflare**: 使用 `wrangler dev` 运行和测试 Cloudflare Workers 和 Durable Objects，可配置本地模拟或连接到测试环境的 GCP 服务。
-    - **GCP**: 使用 Google Cloud SDK 和相关模拟器 (如 Pub/Sub emulator, Functions Framework) 在本地开发和测试 Cloud Functions/Run。
-    - **共享库**: 在 `packages/` 中开发，通过 pnpm workspaces 链接到各应用。
+    * 开发者在本地编码，主要关注单元测试和代码质量。
+    * 使用上述 CLI 工具与已部署到远程开发/预览环境的服务进行必要的交互和验证。
 - **单元测试**:
     - 使用 **Vitest** 作为主要的单元测试框架，覆盖所有共享库和应用中的关键业务逻辑、纯函数等。
     * 测试应与代码存放在一起 (例如 `*.test.ts` 文件)。
 - **集成测试**:
-    - **Cloudflare**: `wrangler dev` 配合 Postman/curl 或自动化脚本测试 API Gateway Worker 与 `TaskCoordinatorDO` 的交互，以及 DO 与（模拟的或真实的测试环境）GCP 服务回调的流程。
-    - **GCP**: 测试 Cloud Functions/Run 对 Pub/Sub 消息的正确处理，以及与 Firestore, GCS, `TaskCoordinatorDO` 回调等服务的集成。
-    - (可选) **端到端 (E2E) 测试**: 使用 Playwright 或 Cypress 从 Vercel 前端发起操作，验证整个链路（Vercel -> CF API GW -> DO -> Pub/Sub -> GCP Function/Run -> DO 回调 -> 数据存储 -> 前端状态更新）的正确性。
+    * 主要在 CI/CD 流程中，将服务部署到集成的测试/预览环境后进行。
+    * 测试 Cloudflare API Gateway Worker 与 `TaskCoordinatorDO` 的交互，以及 DO 与 GCP 服务回调的流程。
+    * 测试 GCP Cloud Functions/Run 对 Pub/Sub 消息的正确处理，以及与 Firestore, GCS, `TaskCoordinatorDO` 回调等服务的集成。
+- **端到端 (E2E) 测试**:
+    * 在 CI/CD 流程中，针对 Staging 或 Preview 环境，使用 Playwright 或 Cypress 从 Vercel 前端发起操作，验证整个链路的正确性。
 - **CI/CD 流程 (GitHub Actions)**:
     * **触发**: PR 到 `dev`/`main` 或直接 push 到 `dev`/`main`。
     * **阶段**:
